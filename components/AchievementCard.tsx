@@ -15,21 +15,18 @@ export default function AchievementCard({ block, isOpen, onClose }: Props) {
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-bg-surface w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden animate-pop relative">
-                <button onClick={onClose} className="absolute top-4 right-4 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors z-10 bg-white/50 backdrop-blur-md">
+            <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative">
+                <button onClick={onClose} className="absolute top-4 right-4 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors z-10 bg-white/80 backdrop-blur-md">
                     <X className="w-5 h-5" />
                 </button>
 
-                <div className="bg-gradient-to-br from-primary to-accent p-8 text-center text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl"></div>
-                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
-
+                <div className="bg-primary p-8 text-center text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-inner">
+                        <div className="w-16 h-16 bg-white/10 rounded-2xl mx-auto flex items-center justify-center mb-4">
                             <Award className="w-8 h-8 text-white" />
                         </div>
                         <h2 className="text-3xl font-black mb-1">TODAY DONE</h2>
-                        <p className="font-medium opacity-90">오늘의 갓생 인증</p>
+                        <p className="font-medium text-white/80">오늘의 갓생 인증</p>
                     </div>
                 </div>
 
@@ -58,11 +55,11 @@ export default function AchievementCard({ block, isOpen, onClose }: Props) {
                     <div className="flex space-x-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 bg-bg-surface-hover border border-border-subtle text-text-base rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                            className="flex-1 bg-bg-surface-hover border border-border-strong text-text-base rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
                         >
                             닫기
                         </button>
-                        <button className="flex-[2] bg-secondary text-white rounded-xl py-3.5 font-bold flex items-center justify-center transition-all active:scale-[0.98] shadow-lg shadow-secondary/20">
+                        <button className="flex-[2] bg-primary text-white rounded-xl py-3.5 font-bold flex items-center justify-center transition-all active:scale-[0.98]">
                             <Share2 className="w-5 h-5 mr-2" />
                             인스타그램 공유
                         </button>

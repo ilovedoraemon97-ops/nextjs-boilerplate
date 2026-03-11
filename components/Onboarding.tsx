@@ -61,12 +61,12 @@ export default function Onboarding() {
                                 className={clsx(
                                     "p-5 rounded-2xl text-left transition-all active:scale-95 border-2",
                                     isSelected
-                                        ? "bg-bg-surface border-primary shadow-lg shadow-primary/10"
-                                        : "bg-bg-surface border-transparent shadow-sm hover:border-border-strong text-text-muted hover:text-text-base"
+                                        ? "bg-bg-surface border-primary"
+                                        : "bg-bg-surface border-border-subtle hover:border-border-strong text-text-muted hover:text-text-base"
                                 )}
                             >
                                 <div className={clsx(
-                                    "w-12 h-12 rounded-xl text-white flex items-center justify-center mb-4 shadow-sm",
+                                    "w-12 h-12 rounded-xl text-white flex items-center justify-center mb-4",
                                     isSelected ? preset.color : "bg-bg-surface-hover text-text-muted"
                                 )}>
                                     {preset.icon}
@@ -87,7 +87,7 @@ export default function Onboarding() {
                 <button
                     onClick={handleStart}
                     disabled={selectedIdx === null}
-                    className="w-full bg-primary hover:bg-primary-hover disabled:bg-border-strong disabled:text-text-muted/50 text-white rounded-xl py-4 font-bold text-lg transition-all active:scale-[0.98] shadow-lg shadow-primary/25 disabled:shadow-none flex items-center justify-center group"
+                    className="w-full bg-primary hover:bg-primary-hover disabled:bg-border-strong disabled:text-text-muted/50 text-white rounded-xl py-4 font-bold text-lg transition-all active:scale-[0.98] flex items-center justify-center group"
                 >
                     갓생 시작하기
                     <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />

@@ -35,7 +35,7 @@ export default function GoalSettingModal({ isOpen, onClose }: Props) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-bg-surface w-full max-w-sm rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up">
+            <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-slide-up">
                 <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
                     <h2 className="text-lg font-bold flex items-center">
                         <Target className="w-5 h-5 text-primary mr-2" />
@@ -102,7 +102,7 @@ export default function GoalSettingModal({ isOpen, onClose }: Props) {
 
                         <button
                             type="submit"
-                            className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98] shadow-lg shadow-primary/25"
+                            className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
                         >
                             목표 시작하기
                         </button>

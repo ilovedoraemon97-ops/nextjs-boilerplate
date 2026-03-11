@@ -1,40 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-    --color-primary: #6366f1;
-    /* Indigo */
-    --color-primary-hover: #4f46e5;
-    --color-secondary: #0f172a;
-    --color-accent: #f43f5e;
-    /* Rose for failures and highlights */
+    --color-primary: #111111;
+    --color-primary-hover: #333333;
+    --color-secondary: #f4f4f5;
+    --color-accent: #ef4444;
 
-    /* Growth blocks - Emerald */
-    --color-growth: #10b981;
-    --color-growth-bg: #ecfdf5;
-    --color-growth-hover: #059669;
+    /* Growth blocks - Soft pastel blue */
+    --color-growth: #3b82f6;
+    --color-growth-bg: #eff6ff;
+    --color-growth-hover: #1d4ed8;
 
-    /* Normal blocks - Slate */
-    --color-normal: #64748b;
-    --color-normal-bg: #f8fafc;
-    --color-normal-hover: #475569;
+    /* Normal blocks - Ultra-light gray */
+    --color-normal: #a1a1aa;
+    --color-normal-bg: #fafafa;
+    --color-normal-hover: #52525b;
 
-    /* Failed blocks - Rose */
-    --color-failed: #e11d48;
-    --color-failed-bg: #fff1f2;
-    --color-failed-hover: #be123c;
+    /* Failed blocks - Soft red */
+    --color-failed: #ef4444;
+    --color-failed-bg: #fef2f2;
+    --color-failed-hover: #b91c1c;
 
-    --color-bg-base: #f1f5f9;
-    /* Outer wrapper bg */
+    /* Backgrounds */
+    --color-bg-base: #fcfcfc;
     --color-bg-surface: #ffffff;
-    /* Mobile phone bg */
-    --color-bg-surface-hover: #f8fafc;
+    --color-bg-surface-hover: #f4f4f5;
 
-    --color-text-base: #0f172a;
-    --color-text-muted: #64748b;
+    /* Typography */
+    --color-text-base: #18181b;
+    --color-text-muted: #71717a;
     --color-text-inverse: #ffffff;
 
-    --color-border-subtle: #e2e8f0;
-    --color-border-strong: #cbd5e1;
+    /* Borders */
+    --color-border-subtle: #f4f4f5;
+    --color-border-strong: #e4e4e7;
 
     --animate-slide-up: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     --animate-fade-in: fade-in 0.2s ease-out;
@@ -96,19 +95,19 @@
 
 @media (prefers-color-scheme: dark) {
     @theme {
-        --color-bg-base: #020617;
-        --color-bg-surface: #0f172a;
-        --color-bg-surface-hover: #1e293b;
+        --color-bg-base: #000000;
+        --color-bg-surface: #111111;
+        --color-bg-surface-hover: #18181b;
 
-        --color-growth-bg: #064e3b;
-        --color-normal-bg: #1e293b;
-        --color-failed-bg: #4c0519;
+        --color-growth-bg: #172554;
+        --color-normal-bg: #18181b;
+        --color-failed-bg: #450a0a;
 
-        --color-text-base: #f8fafc;
-        --color-text-muted: #94a3b8;
+        --color-text-base: #fafafa;
+        --color-text-muted: #a1a1aa;
 
-        --color-border-subtle: #1e293b;
-        --color-border-strong: #334155;
+        --color-border-subtle: #27272a;
+        --color-border-strong: #3f3f46;
     }
 }
 

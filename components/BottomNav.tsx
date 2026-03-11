@@ -35,10 +35,7 @@ export default function BottomNav() {
                                 )}
                             >
                                 <Icon
-                                    className={cn(
-                                        'w-6 h-6 transition-transform',
-                                        isActive && 'scale-110'
-                                    )}
+                                    className="w-6 h-6 transition-transform"
                                     strokeWidth={isActive ? 2.5 : 2}
                                 />
                                 <span className="text-[10px] font-medium">{item.label}</span>

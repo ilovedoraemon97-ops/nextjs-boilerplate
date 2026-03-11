@@ -81,7 +81,7 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
 
             <div className="flex flex-col items-center w-full max-w-sm relative">
                 <div className="text-center mb-12">
-                    <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-growth-bg text-growth-hover text-sm font-bold mb-4 shadow-sm">
+                    <div className="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-growth-bg text-growth-hover text-sm font-bold mb-4">
                         <Flame className="w-4 h-4 mr-1.5" />
                         갓생 타이머
                     </div>
@@ -116,8 +116,8 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                     <button
                         onClick={handlePlayPause}
                         className={clsx(
-                            "w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95",
-                            isActive ? "bg-bg-surface border-2 border-border-strong text-text-base" : "bg-primary text-white shadow-primary/30"
+                            "w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-95",
+                            isActive ? "bg-bg-surface border-2 border-border-strong text-text-base shadow-sm" : "bg-primary text-white shadow-md shadow-primary/10"
                         )}
                     >
                         {isActive ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 ml-1 fill-current" />}
@@ -125,7 +125,7 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
 
                     <button
                         onClick={handleComplete}
-                        className="w-20 h-20 rounded-full bg-growth-hover text-white flex flex-col items-center justify-center shadow-lg shadow-growth-hover/30 transition-transform active:scale-95 group"
+                        className="w-20 h-20 rounded-full bg-growth-hover text-white flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group"
                     >
                         <CheckCircle2 className="w-8 h-8 group-hover:scale-110 transition-transform" />
                         <span className="text-[10px] font-bold mt-1 opacity-90">완료</span>

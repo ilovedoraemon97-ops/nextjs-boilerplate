@@ -47,7 +47,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate }: Props)
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-bg-surface w-full max-w-sm rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up border border-border-subtle">
+            <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-lg overflow-hidden animate-slide-up border border-border-strong">
                 <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between bg-normal-bg">
                     <h2 className="text-lg font-bold flex items-center text-normal">
                         <CalendarIcon className="w-5 h-5 text-normal mr-2" />
@@ -107,7 +107,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate }: Props)
                     <div className="pt-4">
                         <button
                             type="submit"
-                            className="w-full bg-normal hover:bg-normal-hover text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98] shadow-lg shadow-normal/25"
+                            className="w-full bg-normal hover:bg-normal-hover text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
                         >
                             일정 저장
                         </button>
