@@ -173,9 +173,9 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     <div className="w-[18px] sm:w-[24px] flex-shrink-0 bg-bg-surface border-r border-border-subtle flex flex-col relative z-20">
                         <div className="h-10 sm:h-14 border-b border-border-strong bg-bg-surface flex-shrink-0 text-center"></div>
                         <div className="relative flex-1">
-                            {Array.from({ length: 24 }).map((_, i) => (
-                                <div key={`axis-${i}`} className="absolute w-full text-[6px] sm:text-[8px] font-medium text-text-muted text-right pr-0.5 sm:pr-1 leading-none shadow-none" style={{ top: `${(i / 24) * 100}%`, transform: 'translateY(-50%)' }}>
-                                    {i}
+                            {Array.from({ length: 9 }).map((_, i) => (
+                                <div key={`axis-${i}`} className="absolute w-full text-[6px] sm:text-[8px] font-medium text-text-muted text-right pr-0.5 sm:pr-1 leading-none shadow-none" style={{ top: `${(i * 3 / 24) * 100}%`, transform: 'translateY(-50%)' }}>
+                                    {i * 3}
                                 </div>
                             ))}
                         </div>

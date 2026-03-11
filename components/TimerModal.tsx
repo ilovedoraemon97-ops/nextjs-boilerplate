@@ -112,24 +112,38 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                 </div>
 
                 {/* Controls */}
-                <div className="flex items-center space-x-6">
-                    <button
-                        onClick={handlePlayPause}
-                        className={clsx(
-                            "w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-95",
-                            isActive ? "bg-bg-surface border-2 border-border-strong text-text-base shadow-sm" : "bg-primary text-white shadow-md shadow-primary/10"
-                        )}
-                    >
-                        {isActive ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 ml-1 fill-current" />}
-                    </button>
+                <div className="flex flex-col items-center">
+                    <div className="flex items-center space-x-6 mb-8">
+                        <button
+                            onClick={handlePlayPause}
+                            className={clsx(
+                                "w-20 h-20 rounded-full flex items-center justify-center transition-transform active:scale-95",
+                                isActive ? "bg-bg-surface border-2 border-border-strong text-text-base shadow-sm" : "bg-primary text-white shadow-md shadow-primary/10"
+                            )}
+                        >
+                            {isActive ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 ml-1 fill-current" />}
+                        </button>
 
-                    <button
-                        onClick={handleComplete}
-                        className="w-20 h-20 rounded-full bg-growth-hover text-white flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group"
-                    >
-                        <CheckCircle2 className="w-8 h-8 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-bold mt-1 opacity-90">완료</span>
-                    </button>
+                        <button
+                            onClick={handleComplete}
+                            className="w-20 h-20 rounded-full bg-growth-hover text-white flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group"
+                        >
+                            <CheckCircle2 className="w-8 h-8 group-hover:scale-110 transition-transform" />
+                            <span className="text-[10px] font-bold mt-1 opacity-90">완료</span>
+                        </button>
+                    </div>
+
+                    {block.date && (
+                        <button
+                            onClick={() => {
+                                handleClose();
+                                useDoneDayStore.getState().updateBlockSchedule(block.id, null as any, '', block.durationMinutes);
+                            }}
+                            className="text-text-muted text-xs font-semibold hover:text-text-base transition-colors underline underline-offset-4"
+                        >
+                            달력에서 빼기 (대기 상태로)
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

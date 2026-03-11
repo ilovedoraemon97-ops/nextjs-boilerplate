@@ -73,6 +73,10 @@ export default function Home() {
     if (block.type === 'GROWTH' && block.status !== 'COMPLETED') {
       setActiveBlock(block);
       setIsTimerOpen(true);
+    } else if (block.type === 'NORMAL') {
+      if (window.confirm(`'${block.title}' 일정을 삭제하시겠습니까?`)) {
+        useDoneDayStore.getState().deleteBlock(block.id);
+      }
     }
   };
 
