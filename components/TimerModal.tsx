@@ -21,7 +21,7 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
     useEffect(() => {
         if (isOpen && block) {
             setSeconds(block.elapsedMinutes * 60);
-            setIsActive(block.status === 'IN_PROGRESS');
+            setIsActive(block.status === 'RUNNING');
         } else {
             setIsActive(false);
         }

@@ -1,7 +1,8 @@
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 
 export default function Header() {
-    const { stats } = useDoneDayStore();
+    const { stats, getWeeklyGrowthRate } = useDoneDayStore();
+    const growthRate = getWeeklyGrowthRate();
 
     return (
         <header className="sticky top-0 z-40 bg-bg-surface/80 backdrop-blur-md border-b border-border-subtle px-4 py-3 flex items-center justify-between">
@@ -20,6 +21,11 @@ export default function Header() {
                 <div className="w-px h-4 bg-border-strong"></div>
                 <div className="flex items-center">
                     <span className="text-sm font-bold text-primary">Lv.{stats.level}</span>
+                </div>
+                <div className="w-px h-4 bg-border-strong"></div>
+                <div className="flex items-center">
+                    <span className="text-xs font-semibold text-text-muted mr-1">갓생</span>
+                    <span className="text-sm font-bold text-growth-hover">{growthRate}%</span>
                 </div>
             </div>
         </header>

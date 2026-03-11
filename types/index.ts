@@ -1,5 +1,5 @@
 export type BlockType = 'GROWTH' | 'NORMAL';
-export type BlockStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+export type BlockStatus = 'PLANNED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 export interface BaseTimeBlock {
     id: string;

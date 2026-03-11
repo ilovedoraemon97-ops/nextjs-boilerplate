@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+import { format, startOfWeek } from 'date-fns';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
 import WeeklyCalendar from '@/components/WeeklyCalendar';
@@ -9,6 +10,7 @@ import GoalSettingModal from '@/components/GoalSettingModal';
 import TimerModal from '@/components/TimerModal';
 import AchievementCard from '@/components/AchievementCard';
 import NormalBlockModal from '@/components/NormalBlockModal';
+import Onboarding from '@/components/Onboarding';
 import { Plus } from 'lucide-react';
 import { TimeBlock, GrowthBlock } from '@/types';
 
@@ -23,6 +25,13 @@ export default function Home() {
 
   const updateBlockSchedule = useDoneDayStore(state => state.updateBlockSchedule);
   const blocks = useDoneDayStore(state => state.blocks);
+  const carryOverFailedBlocks = useDoneDayStore(state => state.carryOverFailedBlocks);
+
+  useEffect(() => {
+    // Run carry over check on mount for the start of the current week
+    const startOfCurrentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+    carryOverFailedBlocks(startOfCurrentWeek);
+  }, [carryOverFailedBlocks]);
 
   // Require a small movement to start drag, so clicks still work
   const sensors = useSensors(
@@ -119,6 +128,8 @@ export default function Home() {
         onClose={() => setIsNormalModalOpen(false)}
         targetDate={selectedDateForNormal}
       />
+
+      <Onboarding />
     </div>
   );
 }

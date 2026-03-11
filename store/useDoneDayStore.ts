@@ -19,7 +19,8 @@ interface DoneDayState {
     completeBlock: (id: string, totalElapsed: number) => void;
 
     // System Actions
-    carryOverFailedBlocks: (currentDateStr: string) => void; // checks for failed growth blocks and moves them
+    carryOverFailedBlocks: (currentDateStr: string) => void;
+    getWeeklyGrowthRate: () => number; // Returns 0-100
 }
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -48,7 +49,7 @@ export const useDoneDayStore = create<DoneDayState>()(
                     durationMinutes: goal.durationMinutes,
                     targetMinutes: goal.durationMinutes,
                     elapsedMinutes: 0,
-                    status: 'PENDING',
+                    status: 'PLANNED',
                     isCarriedOver: false,
                 }));
 
@@ -86,7 +87,7 @@ export const useDoneDayStore = create<DoneDayState>()(
             startTimer: (id) => {
                 set((state) => ({
                     blocks: state.blocks.map(b =>
-                        b.id === id && b.type === 'GROWTH' ? { ...b, status: 'IN_PROGRESS' as const } : b
+                        b.id === id && b.type === 'GROWTH' ? { ...b, status: 'RUNNING' as const } : b
                     )
                 }));
             },
@@ -94,7 +95,7 @@ export const useDoneDayStore = create<DoneDayState>()(
             pauseTimer: (id, elapsedMinutes) => {
                 set((state) => ({
                     blocks: state.blocks.map(b =>
-                        b.id === id && b.type === 'GROWTH' ? { ...b, status: 'PENDING' as const, elapsedMinutes } : b
+                        b.id === id && b.type === 'GROWTH' ? { ...b, status: 'PLANNED' as const, elapsedMinutes } : b
                     )
                 }));
             },
@@ -115,17 +116,39 @@ export const useDoneDayStore = create<DoneDayState>()(
             },
 
             carryOverFailedBlocks: (currentDateStr) => {
-                // Find blocks that are older than this week, PENDING/FAILED, and mark them as carried over to this week
-                // We will implement precise date-fns logic later, simple placeholder for now:
-                set((state) => ({
-                    blocks: state.blocks.map(b => {
-                        // simplified condition
-                        if (b.type === 'GROWTH' && b.status !== 'COMPLETED' && b.date && b.date < currentDateStr) {
-                            return { ...b, isCarriedOver: true, date: null, startTime: undefined }; // move unassigned
+                // Find blocks that are from dates before this week
+                set((state) => {
+                    let hasChanges = false;
+                    const updatedBlocks = state.blocks.map(b => {
+                        if (b.type === 'GROWTH' && b.status !== 'COMPLETED' && b.date) {
+                            if (b.date < currentDateStr) {
+                                hasChanges = true;
+                                return {
+                                    ...b,
+                                    status: 'FAILED' as const,
+                                    isCarriedOver: true,
+                                    date: null,
+                                    startTime: undefined
+                                };
+                            }
                         }
                         return b;
-                    })
-                }));
+                    });
+
+                    if (!hasChanges) return state;
+                    return { blocks: updatedBlocks };
+                });
+            },
+
+            getWeeklyGrowthRate: () => {
+                const { blocks } = get();
+                // Filter by GROWTH blocks that are not carried over (current week)
+                const currentWeekGrowthBlocks = blocks.filter((b): b is GrowthBlock => b.type === 'GROWTH' && !b.isCarriedOver);
+
+                if (currentWeekGrowthBlocks.length === 0) return 0;
+
+                const completedCount = currentWeekGrowthBlocks.filter(b => b.status === 'COMPLETED').length;
+                return Math.round((completedCount / currentWeekGrowthBlocks.length) * 100);
             }
         }),
         {
