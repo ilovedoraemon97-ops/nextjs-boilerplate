@@ -19,6 +19,7 @@ export default function Home() {
   const [activeBlock, setActiveBlock] = useState<GrowthBlock | undefined>(undefined);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isAchievementOpen, setIsAchievementOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
   const [selectedDateForNormal, setSelectedDateForNormal] = useState<string | null>(null);
@@ -28,6 +29,7 @@ export default function Home() {
   const carryOverFailedBlocks = useDoneDayStore(state => state.carryOverFailedBlocks);
 
   useEffect(() => {
+    setIsMounted(true);
     // Run carry over check on mount for the start of the current week
     const startOfCurrentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
     carryOverFailedBlocks(startOfCurrentWeek);
@@ -83,6 +85,8 @@ export default function Home() {
     setSelectedDateForNormal(dateStr);
     setIsNormalModalOpen(true);
   };
+
+  if (!isMounted) return null;
 
   return (
     <div className="flex flex-col min-h-full pb-24">
