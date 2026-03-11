@@ -8,10 +8,6 @@ import { clsx } from 'clsx';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { TimeBlock } from '@/types';
 
-// Constants
-const HOUR_HEIGHT = 60; // 60px per hour
-const MINUTE_HEIGHT = HOUR_HEIGHT / 60; // 1px per minute
-
 // --- Absolute Draggable Block ---
 interface DraggableBlockProps {
     block: TimeBlock;
@@ -24,14 +20,14 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
         data: block,
     });
 
-    // Calculate absolute position
+    // Calculate abstract percentage position
     const [h, m] = (block.startTime || '09:00').split(':').map(Number);
-    const top = (h * 60 + m) * MINUTE_HEIGHT;
-    const height = Math.max(block.durationMinutes, 30) * MINUTE_HEIGHT;
+    const topPercent = ((h * 60 + m) / (24 * 60)) * 100;
+    const heightPercent = (Math.max(block.durationMinutes, 15) / (24 * 60)) * 100; // minimum visual height
 
     const style = {
-        top: `${top}px`,
-        height: `${height}px`,
+        top: `${topPercent}%`,
+        height: `${heightPercent}%`,
         transform: CSS.Translate.toString(transform),
         opacity: isDragging ? 0.8 : 1,
         zIndex: isDragging ? 999 : 10,
@@ -47,21 +43,21 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
             {...attributes}
             onClick={() => onClick?.(block)}
             className={clsx(
-                "absolute left-[2px] right-[2px] p-1.5 rounded-md text-[11px] flex flex-col cursor-grab active:cursor-grabbing border-l-2 transition-all overflow-hidden hover:z-50",
+                "absolute left-[1px] right-[1px] p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col cursor-grab active:cursor-grabbing border-l-[1.5px] sm:border-l-2 transition-all overflow-hidden hover:z-50 shadow-sm outline outline-1 outline-bg-base",
                 isGrowth
                     ? block.isCarriedOver
-                        ? "bg-failed-bg text-failed-hover border-failed-hover border border-failed-hover/20"
-                        : "bg-growth-bg text-growth-hover border-growth border border-growth/20"
-                    : "bg-normal-bg text-normal-hover border-normal border border-normal/20"
+                        ? "bg-failed-bg text-failed-hover border-failed-hover border-white border-[0.5px] border-l-failed-hover"
+                        : "bg-growth-bg text-growth-hover border-growth border-white border-[0.5px] border-l-growth"
+                    : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >
-            <div className="flex items-center justify-between">
-                <span className="font-semibold truncate">{block.title}</span>
-                {isGrowth && <span className="opacity-80 ml-1 text-[10px]">🔥</span>}
+            <div className="flex items-start sm:items-center justify-between">
+                <span className="font-semibold truncate tracking-tight">{block.title}</span>
+                {isGrowth && <span className="opacity-80 ml-[1px] text-[6px] sm:text-[8px] flex-shrink-0">🔥</span>}
             </div>
             {block.durationMinutes >= 60 && (
-                <div className="flex items-center mt-[2px] text-[9.5px] opacity-70 font-medium tracking-tight">
-                    <Clock className="w-2.5 h-2.5 mr-0.5" />
+                <div className="flex items-center mt-[-1px] sm:mt-[1px] text-[6.5px] sm:text-[8px] opacity-70 font-medium tracking-tight">
+                    <Clock className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] mr-[1px] sm:mr-0.5" />
                     {block.startTime}
                 </div>
             )}
@@ -70,13 +66,13 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
 }
 
 // --- Droppable Slot ---
-function DroppableSlot({ id, top }: { id: string; top: number }) {
+function DroppableSlot({ id, topPercent }: { id: string; topPercent: number }) {
     const { setNodeRef, isOver } = useDroppable({ id });
     return (
         <div
             ref={setNodeRef}
-            className={clsx("absolute left-0 right-0 h-[30px] border-b border-border-subtle/10", isOver && "bg-primary/20 z-20")}
-            style={{ top: `${top}px` }}
+            className={clsx("absolute left-0 right-0 border-b border-border-subtle/10", isOver && "bg-primary/20 z-20")}
+            style={{ top: `${topPercent}%`, height: `${100 / 48}%` }}
         />
     );
 }
@@ -95,14 +91,14 @@ function DayColumn({ date, blocks, onBlockClick }: DayColumnProps) {
     const isDense = blocks.length >= 5;
 
     return (
-        <div className="flex-1 min-w-[70px] sm:min-w-[100px] flex flex-col border-r border-border-subtle last:border-r-0">
+        <div className="flex-1 flex flex-col min-w-0 border-r border-border-subtle last:border-r-0 relative">
             {/* Header */}
-            <div className="p-2 text-center border-b border-border-strong sticky top-0 bg-bg-surface z-40 h-14 flex flex-col justify-center">
-                <div className="text-[10px] sm:text-xs font-semibold text-text-muted uppercase tracking-wider">
+            <div className="p-1 sm:p-2 text-center border-b border-border-strong bg-bg-surface z-40 h-10 sm:h-14 flex flex-col justify-center flex-shrink-0 relative">
+                <div className="text-[8px] sm:text-[10px] font-semibold text-text-muted uppercase tracking-wider">
                     {format(date, 'EEE', { locale: ko })}
                 </div>
                 <div className={clsx(
-                    "text-sm sm:text-base font-semibold mt-0.5 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center mx-auto transition-colors",
+                    "text-[10px] sm:text-xs font-semibold mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center mx-auto transition-colors",
                     format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
                         ? "bg-primary text-white shadow-sm"
                         : "text-text-base"
@@ -111,18 +107,16 @@ function DayColumn({ date, blocks, onBlockClick }: DayColumnProps) {
                 </div>
                 {isDense && (
                     <div className="absolute top-1 right-1 flex space-x-0.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-border-strong"></div>
+                        <div className="w-1 h-1 rounded-full bg-border-strong"></div>
                     </div>
                 )}
             </div>
 
             {/* Grid Area */}
-            <div className="relative flex-1 bg-bg-base overflow-hidden" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
+            <div className="relative flex-1 bg-bg-base w-full">
                 {/* 24 Hour Lines */}
                 {Array.from({ length: 24 }).map((_, i) => (
-                    <div key={`line-${i}`} className="absolute left-0 right-0 border-b border-border-subtle/50" style={{ top: i * HOUR_HEIGHT, height: HOUR_HEIGHT }}>
-                        {/* Only show times loosely if we want, or rely on a global axis */}
-                    </div>
+                    <div key={`line-${i}`} className="absolute left-0 right-0 border-t border-border-subtle/40" style={{ top: `${(i / 24) * 100}%`, height: `${(1 / 24) * 100}%` }} />
                 ))}
 
                 {/* 48 Droppable Slots (30 min increments) */}
@@ -130,7 +124,7 @@ function DayColumn({ date, blocks, onBlockClick }: DayColumnProps) {
                     const h = Math.floor(i / 2).toString().padStart(2, '0');
                     const m = i % 2 === 0 ? '00' : '30';
                     const slotId = `${dateStr}-${h}:${m}`;
-                    return <DroppableSlot key={slotId} id={slotId} top={i * 30} />;
+                    return <DroppableSlot key={slotId} id={slotId} topPercent={(i / 48) * 100} />;
                 })}
 
                 {/* Render Absolute Blocks on top */}
@@ -155,47 +149,53 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
     const weekDates = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
 
     return (
-        <div className="bg-bg-surface rounded-xl border border-border-strong overflow-hidden flex flex-col h-[70vh]">
-            <div className="px-4 py-2.5 bg-bg-surface border-b border-border-strong flex items-center justify-between z-50">
-                <h2 className="font-semibold text-sm flex items-center text-text-base tracking-tight">
-                    <CalendarIcon className="w-4 h-4 mr-1.5 text-text-muted" />
+        <div className="bg-bg-surface rounded-xl border border-border-strong flex flex-col flex-1 h-[70vh]">
+            {/* Header */}
+            <div className="px-3 py-2 sm:px-4 sm:py-2.5 bg-bg-surface border-b border-border-strong flex items-center justify-between z-50 flex-shrink-0">
+                <h2 className="font-semibold text-[13px] sm:text-sm flex items-center text-text-base tracking-tight">
+                    <CalendarIcon className="w-4 h-4 mr-1 sm:mr-1.5 text-text-muted" />
                     이번 주 일정
                 </h2>
-                <div className="flex items-center space-x-3 text-xs font-medium text-text-muted">
+                <div className="flex items-center space-x-2 sm:space-x-3 text-[11px] sm:text-xs font-medium text-text-muted">
                     <button onClick={() => onAddNormalBlock?.(format(new Date(), 'yyyy-MM-dd'))} className="hover:text-text-base transition-colors flex items-center">
                         + 일정 추가
                     </button>
-                    <span className="text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md">
+                    <span className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md">
                         {format(startDate, 'M.d')} - {format(weekDates[6], 'M.d')}
                     </span>
                 </div>
             </div>
 
-            {/* Scrollable Container for the whole grid */}
-            <div className="flex-1 overflow-y-auto overflow-x-auto relative">
-                <div className="flex min-w-[700px]">
+            {/* Container for the whole grid - Fits parent exactly */}
+            <div className="flex-1 relative flex flex-col min-h-0 bg-bg-base overflow-hidden">
+                <div className="flex w-full h-full absolute inset-0">
                     {/* Time Axis */}
-                    <div className="w-[50px] flex-shrink-0 bg-bg-surface border-r border-border-subtle flex flex-col" style={{ paddingTop: '64px' }}>
-                        {Array.from({ length: 24 }).map((_, i) => (
-                            <div key={`axis-${i}`} className="relative text-[9px] font-medium text-text-muted text-right pr-1" style={{ height: HOUR_HEIGHT }}>
-                                <span className="absolute -top-1.5 right-1">{i.toString().padStart(2, '0')}:00</span>
-                            </div>
-                        ))}
+                    <div className="w-[18px] sm:w-[24px] flex-shrink-0 bg-bg-surface border-r border-border-subtle flex flex-col relative z-20">
+                        <div className="h-10 sm:h-14 border-b border-border-strong bg-bg-surface flex-shrink-0 text-center"></div>
+                        <div className="relative flex-1">
+                            {Array.from({ length: 24 }).map((_, i) => (
+                                <div key={`axis-${i}`} className="absolute w-full text-[6px] sm:text-[8px] font-medium text-text-muted text-right pr-0.5 sm:pr-1 leading-none shadow-none" style={{ top: `${(i / 24) * 100}%`, transform: 'translateY(-50%)' }}>
+                                    {i}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* Day Columns */}
-                    {weekDates.map(date => {
-                        const dateStr = format(date, 'yyyy-MM-dd');
-                        const dayBlocks = blocks.filter(b => b.date === dateStr);
-                        return (
-                            <DayColumn
-                                key={dateStr}
-                                date={date}
-                                blocks={dayBlocks}
-                                onBlockClick={onBlockClick}
-                            />
-                        );
-                    })}
+                    <div className="flex flex-1 w-full h-full min-w-0">
+                        {weekDates.map(date => {
+                            const dateStr = format(date, 'yyyy-MM-dd');
+                            const dayBlocks = blocks.filter(b => b.date === dateStr);
+                            return (
+                                <DayColumn
+                                    key={dateStr}
+                                    date={date}
+                                    blocks={dayBlocks}
+                                    onBlockClick={onBlockClick}
+                                />
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </div>
