@@ -16,6 +16,32 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Supabase Sync (Login Required)
+
+If you want completed 갓생 타이머 sessions and progress to be saved to Supabase, set:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Use `supabase/schema.sql` for tables + RLS policies (login-based).
+It includes:
+
+- `growth_sessions` (completion records)
+- `growth_events` (start/pause/progress/complete)
+- `growth_progress` (latest progress per block)
+
+Event types used: `start`, `pause`, `progress`, `complete`.
+
+## Local Testing (LAN Access)
+
+If you want to test from another device on the same network, run:
+
+```bash
+npm run dev:local
+```
+
+Then open `http://<your-local-ip>:3000` from the other device.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

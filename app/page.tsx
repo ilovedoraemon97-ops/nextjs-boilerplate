@@ -4,6 +4,7 @@ import { DndContext, DragEndEvent, useSensor, useSensors, PointerSensor } from '
 import { format, startOfWeek } from 'date-fns';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
+import AuthPanel from '@/components/AuthPanel';
 import WeeklyCalendar from '@/components/WeeklyCalendar';
 import UnassignedBlocks from '@/components/UnassignedBlocks';
 import GoalSettingModal from '@/components/GoalSettingModal';
@@ -11,8 +12,9 @@ import TimerModal from '@/components/TimerModal';
 import AchievementCard from '@/components/AchievementCard';
 import NormalBlockModal from '@/components/NormalBlockModal';
 import Onboarding from '@/components/Onboarding';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { TimeBlock, GrowthBlock } from '@/types';
+import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function Home() {
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
@@ -20,6 +22,8 @@ export default function Home() {
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isAchievementOpen, setIsAchievementOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
   const [selectedDateForNormal, setSelectedDateForNormal] = useState<string | null>(null);
@@ -27,13 +31,32 @@ export default function Home() {
   const updateBlockSchedule = useDoneDayStore(state => state.updateBlockSchedule);
   const blocks = useDoneDayStore(state => state.blocks);
   const carryOverFailedBlocks = useDoneDayStore(state => state.carryOverFailedBlocks);
+  const loadProgressFromServer = useDoneDayStore(state => state.loadProgressFromServer);
 
   useEffect(() => {
     setIsMounted(true);
     // Run carry over check on mount for the start of the current week
     const startOfCurrentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
     carryOverFailedBlocks(startOfCurrentWeek);
-  }, [carryOverFailedBlocks]);
+    loadProgressFromServer();
+  }, [carryOverFailedBlocks, loadProgressFromServer]);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabaseClient) return;
+    supabaseClient.auth.getUser().then(({ data }) => {
+      setIsLoggedIn(Boolean(data.user));
+    });
+    const { data: subscription } = supabaseClient.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(Boolean(session?.user));
+      if (event === 'SIGNED_IN') {
+        setIsAuthOpen(false);
+        loadProgressFromServer();
+      }
+    });
+    return () => {
+      subscription.subscription.unsubscribe();
+    };
+  }, [loadProgressFromServer]);
 
   // Require a small movement to start drag, so clicks still work
   const sensors = useSensors(
@@ -137,7 +160,22 @@ export default function Home() {
         targetDate={selectedDateForNormal}
       />
 
-      <Onboarding />
+      <Onboarding onComplete={() => {
+        if (!isLoggedIn) setIsAuthOpen(true);
+      }} />
+      {isAuthOpen && (
+        <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4 relative">
+            <button
+              onClick={() => setIsAuthOpen(false)}
+              className="absolute top-3 right-3 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <AuthPanel onSignedIn={loadProgressFromServer} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

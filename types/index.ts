@@ -38,3 +38,6 @@ export interface UserStats {
     streak: number;
     totalGrowthHours: number;
 }
+
+// Achievement card is issued after this many accumulated minutes.
+export const ACHIEVEMENT_TARGET_MINUTES = 60;

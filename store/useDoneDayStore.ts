@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Goal, TimeBlock, GrowthBlock, NormalBlock, UserStats } from '@/types';
+import { Goal, TimeBlock, GrowthBlock, NormalBlock, UserStats, ACHIEVEMENT_TARGET_MINUTES } from '@/types';
+import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 interface DoneDayState {
     goals: Goal[];
@@ -17,6 +18,13 @@ interface DoneDayState {
     startTimer: (id: string) => void;
     pauseTimer: (id: string, elapsedMinutes: number) => void;
     completeBlock: (id: string, totalElapsed: number) => void;
+
+    // Supabase Sync
+    syncGrowthStart: (block: GrowthBlock) => Promise<void>;
+    syncGrowthPause: (block: GrowthBlock, elapsedMinutes: number) => Promise<void>;
+    syncGrowthProgress: (block: GrowthBlock, elapsedMinutes: number) => Promise<void>;
+    syncGrowthCompletion: (block: GrowthBlock, totalElapsed: number) => Promise<void>;
+    loadProgressFromServer: () => Promise<void>;
 
     // System Actions
     carryOverFailedBlocks: (currentDateStr: string) => void;
@@ -90,6 +98,8 @@ export const useDoneDayStore = create<DoneDayState>()(
                         b.id === id && b.type === 'GROWTH' ? { ...b, status: 'RUNNING' as const } : b
                     )
                 }));
+                const block = get().blocks.find((b): b is GrowthBlock => b.id === id && b.type === 'GROWTH');
+                if (block) get().syncGrowthStart(block);
             },
 
             pauseTimer: (id, elapsedMinutes) => {
@@ -98,13 +108,22 @@ export const useDoneDayStore = create<DoneDayState>()(
                         b.id === id && b.type === 'GROWTH' ? { ...b, status: 'PLANNED' as const, elapsedMinutes } : b
                     )
                 }));
+                const block = get().blocks.find((b): b is GrowthBlock => b.id === id && b.type === 'GROWTH');
+                if (block) get().syncGrowthPause(block, elapsedMinutes);
             },
 
             completeBlock: (id, totalElapsed) => {
                 set((state) => {
-                    const blocks = state.blocks.map(b =>
-                        b.id === id && b.type === 'GROWTH' ? { ...b, status: 'COMPLETED' as const, elapsedMinutes: totalElapsed } : b
-                    );
+                    const blocks = state.blocks.map(b => {
+                        if (b.id !== id || b.type !== 'GROWTH') return b;
+                        if (totalElapsed < ACHIEVEMENT_TARGET_MINUTES) {
+                            return { ...b, status: 'PLANNED' as const, elapsedMinutes: totalElapsed };
+                        }
+                        return { ...b, status: 'COMPLETED' as const, elapsedMinutes: totalElapsed };
+                    });
+                    if (totalElapsed < ACHIEVEMENT_TARGET_MINUTES) {
+                        return { blocks };
+                    }
                     return {
                         blocks,
                         stats: {
@@ -113,6 +132,129 @@ export const useDoneDayStore = create<DoneDayState>()(
                         }
                     };
                 });
+                const updatedBlock = get().blocks.find((b): b is GrowthBlock => b.id === id && b.type === 'GROWTH');
+                if (updatedBlock && totalElapsed >= ACHIEVEMENT_TARGET_MINUTES) {
+                    get().syncGrowthCompletion(updatedBlock, totalElapsed);
+                }
+            },
+
+            syncGrowthStart: async (block) => {
+                if (!isSupabaseConfigured || !supabaseClient) return;
+                const { data } = await supabaseClient.auth.getUser();
+                if (!data.user) return;
+                const { error } = await supabaseClient.from('growth_events').insert({
+                    user_id: data.user.id,
+                    block_id: block.id,
+                    title: block.title,
+                    event_type: 'start',
+                    elapsed_minutes: block.elapsedMinutes,
+                    occurred_at: new Date().toISOString(),
+                });
+                if (error) {
+                    console.error('[supabase] failed to insert growth_events (start)', error);
+                }
+            },
+
+            syncGrowthPause: async (block, elapsedMinutes) => {
+                if (!isSupabaseConfigured || !supabaseClient) return;
+                const { data } = await supabaseClient.auth.getUser();
+                if (!data.user) return;
+                const { error } = await supabaseClient.from('growth_events').insert({
+                    user_id: data.user.id,
+                    block_id: block.id,
+                    title: block.title,
+                    event_type: 'pause',
+                    elapsed_minutes: elapsedMinutes,
+                    occurred_at: new Date().toISOString(),
+                });
+                if (!error) {
+                    await supabaseClient.from('growth_progress').upsert({
+                        user_id: data.user.id,
+                        block_id: block.id,
+                        elapsed_minutes: elapsedMinutes,
+                        updated_at: new Date().toISOString(),
+                    });
+                }
+                if (error) {
+                    console.error('[supabase] failed to insert growth_events (pause)', error);
+                }
+            },
+
+            syncGrowthProgress: async (block, elapsedMinutes) => {
+                if (!isSupabaseConfigured || !supabaseClient) return;
+                const { data } = await supabaseClient.auth.getUser();
+                if (!data.user) return;
+                const { error } = await supabaseClient.from('growth_events').insert({
+                    user_id: data.user.id,
+                    block_id: block.id,
+                    title: block.title,
+                    event_type: 'progress',
+                    elapsed_minutes: elapsedMinutes,
+                    occurred_at: new Date().toISOString(),
+                });
+                if (!error) {
+                    await supabaseClient.from('growth_progress').upsert({
+                        user_id: data.user.id,
+                        block_id: block.id,
+                        elapsed_minutes: elapsedMinutes,
+                        updated_at: new Date().toISOString(),
+                    });
+                }
+                if (error) {
+                    console.error('[supabase] failed to insert growth_events (progress)', error);
+                }
+            },
+
+            syncGrowthCompletion: async (block, totalElapsed) => {
+                if (!isSupabaseConfigured || !supabaseClient) return;
+                const { data } = await supabaseClient.auth.getUser();
+                if (!data.user) return;
+                const { error } = await supabaseClient.from('growth_sessions').insert({
+                    user_id: data.user.id,
+                    block_id: block.id,
+                    title: block.title,
+                    target_minutes: block.targetMinutes,
+                    elapsed_minutes: totalElapsed,
+                    completed_at: new Date().toISOString(),
+                });
+                if (!error) {
+                    await supabaseClient.from('growth_events').insert({
+                        user_id: data.user.id,
+                        block_id: block.id,
+                        title: block.title,
+                        event_type: 'complete',
+                        elapsed_minutes: totalElapsed,
+                        occurred_at: new Date().toISOString(),
+                    });
+                    await supabaseClient.from('growth_progress').upsert({
+                        user_id: data.user.id,
+                        block_id: block.id,
+                        elapsed_minutes: totalElapsed,
+                        updated_at: new Date().toISOString(),
+                    });
+                }
+                if (error) {
+                    console.error('[supabase] failed to insert growth_sessions', error);
+                }
+            },
+
+            loadProgressFromServer: async () => {
+                if (!isSupabaseConfigured || !supabaseClient) return;
+                const { data } = await supabaseClient.auth.getUser();
+                if (!data.user) return;
+                const { data: rows, error } = await supabaseClient
+                    .from('growth_progress')
+                    .select('block_id, elapsed_minutes')
+                    .eq('user_id', data.user.id);
+                if (error || !rows) return;
+                set((state) => ({
+                    blocks: state.blocks.map(b => {
+                        if (b.type !== 'GROWTH' || b.status === 'COMPLETED') return b;
+                        const row = rows.find(r => r.block_id === b.id);
+                        if (!row) return b;
+                        return { ...b, elapsedMinutes: Math.max(b.elapsedMinutes, row.elapsed_minutes) };
+                    })
+                }));
             },
 
             carryOverFailedBlocks: (currentDateStr) => {

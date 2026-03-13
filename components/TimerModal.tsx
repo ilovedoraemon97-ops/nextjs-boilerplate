@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import { X, Play, Pause, CheckCircle2, Flame } from 'lucide-react';
-import { GrowthBlock } from '@/types';
+import { GrowthBlock, ACHIEVEMENT_TARGET_MINUTES } from '@/types';
 import { clsx } from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,7 +14,7 @@ interface Props {
 }
 
 export default function TimerModal({ block, isOpen, onClose, onComplete }: Props) {
-    const { startTimer, pauseTimer, completeBlock } = useDoneDayStore();
+    const { startTimer, pauseTimer, completeBlock, syncGrowthProgress } = useDoneDayStore();
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
 
@@ -37,6 +37,13 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         return () => clearInterval(interval);
     }, [isActive]);
 
+    useEffect(() => {
+        if (!isActive || !block) return;
+        if (seconds > 0 && seconds % 60 === 0) {
+            syncGrowthProgress(block, Math.floor(seconds / 60));
+        }
+    }, [seconds, isActive, block, syncGrowthProgress]);
+
     if (!isOpen || !block) return null;
 
     const handlePlayPause = () => {
@@ -49,9 +56,16 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         }
     };
 
+    const totalMinutes = Math.floor(seconds / 60);
+    const canIssueAchievement = totalMinutes >= ACHIEVEMENT_TARGET_MINUTES;
+
     const handleComplete = () => {
+        if (!canIssueAchievement) {
+            window.alert('시간이 미충족 되었어요. 누적 60분을 채워야 인증카드가 발급됩니다.');
+            return;
+        }
         setIsActive(false);
-        completeBlock(block.id, Math.floor(seconds / 60));
+        completeBlock(block.id, totalMinutes);
         onClose();
         onComplete();
     };
@@ -71,7 +85,8 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const progressPercent = Math.min(100, (seconds / (block.targetMinutes * 60)) * 100);
+    const progressPercent = Math.min(100, (seconds / (ACHIEVEMENT_TARGET_MINUTES * 60)) * 100);
+    const remainingMinutes = Math.max(0, ACHIEVEMENT_TARGET_MINUTES - totalMinutes);
 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg-surface p-4 animate-fade-in">
@@ -88,6 +103,9 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                     <h2 className="text-3xl font-black text-text-base">{block.title}</h2>
                     <p className="text-text-muted mt-2 font-medium">
                         목표 시간: {block.targetMinutes}분
+                    </p>
+                    <p className="text-xs text-text-muted mt-2 font-semibold">
+                        인증 카드: 누적 {ACHIEVEMENT_TARGET_MINUTES}분 달성 시 발급 · 남은 {remainingMinutes}분
                     </p>
                 </div>
 
@@ -126,7 +144,12 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
 
                         <button
                             onClick={handleComplete}
-                            className="w-20 h-20 rounded-full bg-growth-hover text-white flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group"
+                            className={clsx(
+                                "w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group",
+                                canIssueAchievement
+                                    ? "bg-growth-hover text-white"
+                                    : "bg-bg-surface border border-border-strong text-text-muted cursor-not-allowed"
+                            )}
                         >
                             <CheckCircle2 className="w-8 h-8 group-hover:scale-110 transition-transform" />
                             <span className="text-[10px] font-bold mt-1 opacity-90">완료</span>

@@ -19,7 +19,11 @@ const PRESETS: PresetGoal[] = [
     { title: '어학 공부', icon: <Flame className="w-6 h-6" />, color: 'bg-red-500', durationMinutes: 60, frequencyPerWeek: 4 },
 ];
 
-export default function Onboarding() {
+interface Props {
+    onComplete?: () => void;
+}
+
+export default function Onboarding({ onComplete }: Props) {
     const { goals, addGoal } = useDoneDayStore();
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
@@ -34,6 +38,7 @@ export default function Onboarding() {
             durationMinutes: preset.durationMinutes,
             frequencyPerWeek: preset.frequencyPerWeek,
         });
+        onComplete?.();
     };
 
     return (
