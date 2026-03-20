@@ -109,8 +109,8 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-lg overflow-hidden animate-slide-up border border-border-strong flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-lg overflow-hidden animate-slide-up border border-border-strong flex flex-col max-h-[75vh]">
                 <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between bg-normal-bg shrink-0">
                     <h2 className="text-sm font-bold flex items-center text-normal">
                         <CalendarIcon className="w-4 h-4 text-normal mr-1.5" />

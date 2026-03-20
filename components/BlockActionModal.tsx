@@ -10,9 +10,10 @@ interface Props {
     onOpenTimer?: () => void;
     onEditGoal?: () => void; // for Growth
     onEditNormal?: () => void; // for Normal
+    onUnassignGrowth?: () => void;
 }
 
-export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, onEditGoal, onEditNormal }: Props) {
+export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, onEditGoal, onEditNormal, onUnassignGrowth }: Props) {
     const deleteBlock = useDoneDayStore(state => state.deleteBlock);
 
     if (!isOpen || !block) return null;
@@ -51,6 +52,14 @@ export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, 
                                     <Edit3 className="w-5 h-5 mr-2" />
                                     목표 수정
                                 </button>
+                                {block.date && (
+                                    <button
+                                        onClick={() => { onClose(); onUnassignGrowth?.(); }}
+                                        className="w-full bg-bg-surface-hover hover:bg-border-subtle text-text-muted rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-border-strong"
+                                    >
+                                        달력에서 빼기 (대기 상태로)
+                                    </button>
+                                )}
                             </>
                         ) : (
                             <>

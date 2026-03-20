@@ -2,8 +2,8 @@
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import { useDroppable } from '@dnd-kit/core';
 import { clsx } from 'clsx';
-import { Inbox } from 'lucide-react';
-import { TimeBlock } from '@/types';
+import { Inbox, CheckCircle2 } from 'lucide-react';
+import { TimeBlock, GrowthBlock } from '@/types';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -26,6 +26,7 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
 
     const isGrowth = block.type === 'GROWTH';
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
+    const isCompleted = isGrowth && block.status === 'COMPLETED';
 
     return (
         <div
@@ -36,11 +37,17 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
             onClick={() => onClick?.(block)}
             className={clsx(
                 "border-l-4 p-3 rounded-xl shadow-sm cursor-grab active:cursor-grabbing mb-2 w-[140px] shrink-0 transform transition-transform hover:scale-105 active:scale-95",
-                isGrowth ? `${colorClass} bg-opacity-80 text-white border-white/30` : "bg-normal-bg text-normal-hover border-normal/20"
+                isGrowth ? `${colorClass} text-white border-white/30` : "bg-normal-bg text-normal-hover border-normal/20"
             )}
         >
-            <div className="truncate mb-1 font-bold text-sm">{block.title}</div>
-            <div className="text-xs opacity-80 font-semibold">{block.durationMinutes}분</div>
+            <div className="flex items-center justify-between mb-1">
+                <div className="truncate font-bold text-sm">{block.title}</div>
+                {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 ml-1 shrink-0" />}
+            </div>
+            <div className="text-xs opacity-80 font-semibold flex justify-between">
+                <span>{block.durationMinutes}분</span>
+                {isGrowth && !isCompleted && <span>{Math.round(((block as GrowthBlock).elapsedMinutes / (block as GrowthBlock).targetMinutes) * 100)}%</span>}
+            </div>
         </div>
     );
 }

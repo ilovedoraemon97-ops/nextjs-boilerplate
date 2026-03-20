@@ -5,8 +5,8 @@ import { ko } from 'date-fns/locale';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { clsx } from 'clsx';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
-import { TimeBlock } from '@/types';
+import { Calendar as CalendarIcon, Clock, CheckCircle2 } from 'lucide-react';
+import { TimeBlock, GrowthBlock } from '@/types';
 
 // --- Absolute Draggable Block ---
 interface DraggableBlockProps {
@@ -37,6 +37,20 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
     const isCompleted = isGrowth && block.status === 'COMPLETED';
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
 
+    let opacityClass = 'bg-opacity-20';
+    let textClass = 'text-text-base text-opacity-80';
+    if (isCompleted) {
+        opacityClass = 'bg-opacity-100';
+        textClass = 'text-white';
+    } else if (isGrowth) {
+        const pct = (block as GrowthBlock).elapsedMinutes / (block as GrowthBlock).targetMinutes;
+        if (pct > 0) {
+            if (pct < 0.33) { opacityClass = 'bg-opacity-40'; }
+            else if (pct < 0.66) { opacityClass = 'bg-opacity-60'; }
+            else { opacityClass = 'bg-opacity-80'; textClass = 'text-white text-opacity-90'; }
+        }
+    }
+
     return (
         <div
             ref={setNodeRef}
@@ -49,13 +63,17 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
                 isGrowth
                     ? block.isCarriedOver
                         ? "bg-failed-bg text-failed-hover border-failed-hover border-white border-[0.5px] border-l-failed-hover"
-                        : `${colorClass} border-white border-[0.5px] ${isCompleted ? 'text-white' : 'bg-opacity-40 text-text-base border-l-white/50 backdrop-blur-sm'}`
+                        : `${colorClass} border-white border-[0.5px] ${opacityClass} ${textClass} border-l-white/50 backdrop-blur-sm`
                     : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >
             <div className="flex items-start sm:items-center justify-between">
                 <span className="font-semibold truncate tracking-tight">{block.title}</span>
-                {isGrowth && <span className="opacity-80 ml-[1px] text-[6px] sm:text-[8px] flex-shrink-0">🔥</span>}
+                {isGrowth && (
+                    <span className="opacity-90 sm:ml-0.5 text-[6px] sm:text-[8px] flex-shrink-0">
+                        {isCompleted ? <CheckCircle2 className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px]" /> : '🔥'}
+                    </span>
+                )}
             </div>
             {block.durationMinutes >= 60 && (
                 <div className="flex items-center mt-[-1px] sm:mt-[1px] text-[6.5px] sm:text-[8px] opacity-70 font-medium tracking-tight">
@@ -151,7 +169,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
     const weekDates = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
 
     return (
-        <div className="bg-bg-surface rounded-xl border border-border-strong flex flex-col flex-1 h-[70vh]">
+        <div className="bg-bg-surface rounded-xl border border-border-strong flex flex-col flex-1 w-full h-full min-h-0">
             {/* Header */}
             <div className="px-3 py-2 sm:px-4 sm:py-2.5 bg-bg-surface border-b border-border-strong flex items-center justify-between z-50 flex-shrink-0">
                 <h2 className="font-semibold text-[13px] sm:text-sm flex items-center text-text-base tracking-tight">
@@ -159,10 +177,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     이번 주 일정
                 </h2>
                 <div className="flex items-center space-x-2 sm:space-x-3 text-[11px] sm:text-xs font-medium text-text-muted">
-                    <button onClick={() => onAddNormalBlock?.(format(new Date(), 'yyyy-MM-dd'))} className="hover:text-text-base transition-colors flex items-center">
-                        + 일정 추가
-                    </button>
-                    <span className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md">
+                    <span className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md text-text-muted">
                         {format(startDate, 'M.d')} - {format(weekDates[6], 'M.d')}
                     </span>
                 </div>

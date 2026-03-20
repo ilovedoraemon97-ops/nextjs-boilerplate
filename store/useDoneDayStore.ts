@@ -82,7 +82,7 @@ export const useDoneDayStore = create<DoneDayState>()(
                     const updatedGoal = { ...goal, ...updates };
 
                     const updatedBlocks = state.blocks.map(b => {
-                        if (b.type === 'GROWTH' && b.goalId === id) {
+                        if (b.type === 'GROWTH' && (b.goalId === id || b.title === goal.title)) {
                             return {
                                 ...b,
                                 title: updatedGoal.title,

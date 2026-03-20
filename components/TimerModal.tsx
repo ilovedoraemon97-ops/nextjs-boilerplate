@@ -155,17 +155,6 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                         </button>
                     </div>
 
-                    {block.date && (
-                        <button
-                            onClick={() => {
-                                handleClose();
-                                useDoneDayStore.getState().updateBlockSchedule(block.id, null as any, '', block.durationMinutes);
-                            }}
-                            className="text-text-muted text-xs font-semibold hover:text-text-base transition-colors underline underline-offset-4"
-                        >
-                            달력에서 빼기 (대기 상태로)
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

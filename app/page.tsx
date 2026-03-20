@@ -115,13 +115,29 @@ export default function Home() {
     <div className="flex flex-col min-h-full pb-24">
       <Header />
 
-      <div className="flex-1 p-4 space-y-6">
+      <div className="flex-1 p-4 flex flex-col min-h-0 space-y-4">
+        {/* Top Buttons */}
+        <div className="flex items-center space-x-3 shrink-0">
+          <button onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }} className="flex-1 bg-normal font-bold hover:bg-normal-hover text-white py-3 sm:py-4 rounded-xl shadow-sm text-sm transition-transform active:scale-95">
+            일반 일정 추가
+          </button>
+          <button onClick={() => { setGoalToEdit(null); setIsGoalModalOpen(true); }} className="flex-1 bg-primary font-bold hover:bg-primary-hover text-white py-3 sm:py-4 rounded-xl shadow-sm text-sm transition-transform active:scale-95">
+            갓생 목표 추가
+          </button>
+        </div>
+
         <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-          <UnassignedBlocks onBlockClick={handleBlockClick} />
-          <WeeklyCalendar
-            onBlockClick={handleBlockClick}
-            onAddNormalBlock={handleAddNormalBlockClick}
-          />
+          <div className="flex-[1.5] min-h-0 mb-2 sm:mb-4 w-full relative">
+            <div className="absolute inset-0 pb-2">
+              <WeeklyCalendar
+                onBlockClick={handleBlockClick}
+                onAddNormalBlock={handleAddNormalBlockClick}
+              />
+            </div>
+          </div>
+          <div className="shrink-0 bg-bg-surface border-t border-border-strong pt-3 sm:pt-4 -mx-4 px-4 shadow-sm pb-1 sm:pb-4 min-h-[110px] sm:min-h-[130px]">
+            <UnassignedBlocks onBlockClick={handleBlockClick} />
+          </div>
         </DndContext>
       </div>
 
@@ -135,13 +151,20 @@ export default function Home() {
             setIsTimerOpen(true);
           }
         }}
+        onUnassignGrowth={() => {
+          if (actionBlock?.type === 'GROWTH') {
+            useDoneDayStore.getState().updateBlockSchedule(actionBlock.id, null as any, '', actionBlock.durationMinutes);
+          }
+        }}
         onEditGoal={() => {
           if (actionBlock?.type === 'GROWTH') {
-            const goalId = (actionBlock as GrowthBlock).goalId;
-            const goal = useDoneDayStore.getState().goals.find(g => g.id === goalId);
+            const growthBlock = actionBlock as GrowthBlock;
+            const goal = useDoneDayStore.getState().goals.find(g => g.id === growthBlock.goalId || g.title === growthBlock.title);
             if (goal) {
               setGoalToEdit(goal);
               setIsGoalModalOpen(true);
+            } else {
+              alert('해당 목표 설정을 찾을 수 없습니다.');
             }
           }
         }}
