@@ -24,22 +24,55 @@ interface Props {
 }
 
 export default function Onboarding({ onComplete }: Props) {
-    const { goals, addGoal } = useDoneDayStore();
+    const { goals, addGoal, onboardingDismissed, dismissOnboarding } = useDoneDayStore();
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
     // Only show if no goals exist
-    if (goals.length > 0) return null;
+    if (onboardingDismissed) return null;
 
     const handleStart = () => {
         if (selectedIdx === null) return;
         const preset = PRESETS[selectedIdx];
         addGoal({
             title: preset.title,
+            color: preset.color,
             durationMinutes: preset.durationMinutes,
             frequencyPerWeek: preset.frequencyPerWeek,
         });
+        dismissOnboarding();
         onComplete?.();
     };
+
+    if (goals.length > 0) {
+        return (
+            <div className="fixed inset-0 z-[200] bg-bg-base flex flex-col pt-20 pb-8 px-6 animate-fade-in overflow-y-auto">
+                <div className="flex-1 max-w-sm mx-auto w-full flex flex-col justify-center text-center">
+                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+                        <Target className="w-8 h-8" />
+                    </div>
+                    <h1 className="text-2xl font-black text-text-base mb-3 leading-tight">
+                        계속하려면 로그인해 주세요
+                    </h1>
+                    <p className="text-text-muted font-medium">
+                        기존 목표가 있어요. 로그인하면 이어서 사용할 수 있어요.
+                    </p>
+                </div>
+
+                <div className="max-w-sm mx-auto w-full mt-auto">
+                    <button
+                        onClick={() => {
+                            dismissOnboarding();
+                            onComplete?.();
+                        }}
+                        className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-4 font-bold text-lg transition-all active:scale-[0.98] flex items-center justify-center group"
+                    >
+                        로그인으로 이동
+                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 z-[200] bg-bg-base flex flex-col pt-20 pb-8 px-6 animate-fade-in overflow-y-auto">

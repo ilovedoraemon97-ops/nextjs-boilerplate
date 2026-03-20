@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CalendarDays, LineChart, Users, LayoutDashboard } from 'lucide-react';
+import { CalendarDays, LineChart, Users, LayoutDashboard, Target } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -10,6 +10,7 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 const NAV_ITEMS = [
+    { href: '/goals', label: 'Goals', icon: Target },
     { href: '/', label: 'Home', icon: CalendarDays },
     { href: '/feed', label: 'Feed', icon: LayoutDashboard },
     { href: '/room', label: 'Room', icon: Users },

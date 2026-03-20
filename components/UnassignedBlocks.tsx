@@ -24,6 +24,9 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
         zIndex: isDragging ? 999 : 1,
     };
 
+    const isGrowth = block.type === 'GROWTH';
+    const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
+
     return (
         <div
             ref={setNodeRef}
@@ -31,7 +34,10 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
             {...listeners}
             {...attributes}
             onClick={() => onClick?.(block)}
-            className="bg-growth-bg border-l-4 border-growth/50 border-y border-r border-y-growth/20 border-r-growth/20 text-growth-hover p-3 rounded-xl shadow-sm cursor-grab active:cursor-grabbing mb-2 w-[140px] shrink-0 transform transition-transform hover:scale-105 active:scale-95"
+            className={clsx(
+                "border-l-4 p-3 rounded-xl shadow-sm cursor-grab active:cursor-grabbing mb-2 w-[140px] shrink-0 transform transition-transform hover:scale-105 active:scale-95",
+                isGrowth ? `${colorClass} bg-opacity-80 text-white border-white/30` : "bg-normal-bg text-normal-hover border-normal/20"
+            )}
         >
             <div className="truncate mb-1 font-bold text-sm">{block.title}</div>
             <div className="text-xs opacity-80 font-semibold">{block.durationMinutes}분</div>

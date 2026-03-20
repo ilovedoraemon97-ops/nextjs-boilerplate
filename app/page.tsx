@@ -7,18 +7,19 @@ import Header from '@/components/Header';
 import AuthPanel from '@/components/AuthPanel';
 import WeeklyCalendar from '@/components/WeeklyCalendar';
 import UnassignedBlocks from '@/components/UnassignedBlocks';
-import GoalSettingModal from '@/components/GoalSettingModal';
 import TimerModal from '@/components/TimerModal';
 import AchievementCard from '@/components/AchievementCard';
 import NormalBlockModal from '@/components/NormalBlockModal';
 import Onboarding from '@/components/Onboarding';
-import { Plus, X } from 'lucide-react';
-import { TimeBlock, GrowthBlock } from '@/types';
+import BlockActionModal from '@/components/BlockActionModal';
+import GoalSettingModal from '@/components/GoalSettingModal';
+import { X } from 'lucide-react';
+import { TimeBlock, GrowthBlock, NormalBlock, Goal } from '@/types';
 import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function Home() {
-  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [activeBlock, setActiveBlock] = useState<GrowthBlock | undefined>(undefined);
+  const [actionBlock, setActionBlock] = useState<TimeBlock | null>(null);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isAchievementOpen, setIsAchievementOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -27,6 +28,9 @@ export default function Home() {
 
   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
   const [selectedDateForNormal, setSelectedDateForNormal] = useState<string | null>(null);
+  const [normalBlockToEdit, setNormalBlockToEdit] = useState<NormalBlock | null>(null);
+  const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
 
   const updateBlockSchedule = useDoneDayStore(state => state.updateBlockSchedule);
   const blocks = useDoneDayStore(state => state.blocks);
@@ -92,15 +96,7 @@ export default function Home() {
   };
 
   const handleBlockClick = (block: TimeBlock) => {
-    // Only Growth blocks have timers
-    if (block.type === 'GROWTH' && block.status !== 'COMPLETED') {
-      setActiveBlock(block);
-      setIsTimerOpen(true);
-    } else if (block.type === 'NORMAL') {
-      if (window.confirm(`'${block.title}' 일정을 삭제하시겠습니까?`)) {
-        useDoneDayStore.getState().deleteBlock(block.id);
-      }
-    }
+    setActionBlock(block);
   };
 
   const handleTimerComplete = () => {
@@ -129,16 +125,41 @@ export default function Home() {
         </DndContext>
       </div>
 
-      <button
-        onClick={() => setIsGoalModalOpen(true)}
-        className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-40"
-      >
-        <Plus className="w-6 h-6" strokeWidth={3} />
-      </button>
+      <BlockActionModal
+        block={actionBlock}
+        isOpen={!!actionBlock}
+        onClose={() => setActionBlock(null)}
+        onOpenTimer={() => {
+          if (actionBlock?.type === 'GROWTH') {
+            setActiveBlock(actionBlock as GrowthBlock);
+            setIsTimerOpen(true);
+          }
+        }}
+        onEditGoal={() => {
+          if (actionBlock?.type === 'GROWTH') {
+            const goalId = (actionBlock as GrowthBlock).goalId;
+            const goal = useDoneDayStore.getState().goals.find(g => g.id === goalId);
+            if (goal) {
+              setGoalToEdit(goal);
+              setIsGoalModalOpen(true);
+            }
+          }
+        }}
+        onEditNormal={() => {
+          if (actionBlock?.type === 'NORMAL') {
+            setNormalBlockToEdit(actionBlock as NormalBlock);
+            setIsNormalModalOpen(true);
+          }
+        }}
+      />
 
       <GoalSettingModal
         isOpen={isGoalModalOpen}
-        onClose={() => setIsGoalModalOpen(false)}
+        onClose={() => {
+          setIsGoalModalOpen(false);
+          setGoalToEdit(null);
+        }}
+        goalToEdit={goalToEdit}
       />
 
       <TimerModal
@@ -156,8 +177,13 @@ export default function Home() {
 
       <NormalBlockModal
         isOpen={isNormalModalOpen}
-        onClose={() => setIsNormalModalOpen(false)}
+        onClose={() => {
+          setIsNormalModalOpen(false);
+          setNormalBlockToEdit(null);
+          setSelectedDateForNormal(null);
+        }}
         targetDate={selectedDateForNormal}
+        blockToEdit={normalBlockToEdit}
       />
 
       <Onboarding onComplete={() => {

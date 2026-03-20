@@ -34,6 +34,8 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
     };
 
     const isGrowth = block.type === 'GROWTH';
+    const isCompleted = isGrowth && block.status === 'COMPLETED';
+    const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
 
     return (
         <div
@@ -47,7 +49,7 @@ function AbsoluteDraggableBlock({ block, onClick }: DraggableBlockProps) {
                 isGrowth
                     ? block.isCarriedOver
                         ? "bg-failed-bg text-failed-hover border-failed-hover border-white border-[0.5px] border-l-failed-hover"
-                        : "bg-growth-bg text-growth-hover border-growth border-white border-[0.5px] border-l-growth"
+                        : `${colorClass} border-white border-[0.5px] ${isCompleted ? 'text-white' : 'bg-opacity-40 text-text-base border-l-white/50 backdrop-blur-sm'}`
                     : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >

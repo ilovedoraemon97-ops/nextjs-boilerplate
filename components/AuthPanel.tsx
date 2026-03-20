@@ -43,7 +43,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setLoading(true);
         setError(null);
         setNotice(null);
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const { error } = await supabaseClient.auth.signInWithPassword({ email: email.trim(), password });
         if (error) setError(error.message);
         setLoading(false);
     };
@@ -53,7 +53,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setLoading(true);
         setError(null);
         setNotice(null);
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email.trim(),
+            password,
+            options: {
+                emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
         if (error) setError(error.message);
         if (!error && !data.session) {
             setNotice('회원가입 요청이 완료되었습니다. 이메일 인증 후 로그인해 주세요.');
@@ -68,7 +74,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setNotice(null);
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'kakao',
-            options: { redirectTo: window.location.origin },
+            options: { redirectTo: `${window.location.origin}/auth/callback` },
         });
         if (error) setError(error.message);
         setLoading(false);

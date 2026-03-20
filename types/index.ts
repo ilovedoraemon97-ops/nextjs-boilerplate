@@ -13,6 +13,8 @@ export interface BaseTimeBlock {
 
 export interface GrowthBlock extends BaseTimeBlock {
     type: 'GROWTH';
+    goalId: string;
+    color: string;
     status: BlockStatus;
     targetMinutes: number;
     elapsedMinutes: number;
@@ -28,6 +30,7 @@ export type TimeBlock = GrowthBlock | NormalBlock;
 export interface Goal {
     id: string;
     title: string;
+    color: string;
     durationMinutes: number; // e.g., 60 minutes per session
     frequencyPerWeek: number; // e.g., 3 times/week
     createdAt: string;

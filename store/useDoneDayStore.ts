@@ -7,12 +7,17 @@ interface DoneDayState {
     goals: Goal[];
     blocks: TimeBlock[];
     stats: UserStats;
+    onboardingDismissed: boolean;
 
     // Actions
     addGoal: (goal: Omit<Goal, 'id' | 'createdAt'>) => void;
+    updateGoal: (id: string, updates: Partial<Omit<Goal, 'id' | 'createdAt'>>) => void;
+    deleteGoal: (id: string) => void;
     addNormalBlock: (block: Omit<NormalBlock, 'id' | 'type'>) => void;
+    updateNormalBlock: (id: string, updates: Partial<Omit<NormalBlock, 'id' | 'type'>>) => void;
     updateBlockSchedule: (id: string, date: string, startTime: string, durationMinutes: number) => void;
     deleteBlock: (id: string) => void;
+    dismissOnboarding: () => void;
 
     // Timer Actions (Growth Blocks only)
     startTimer: (id: string) => void;
@@ -43,6 +48,7 @@ export const useDoneDayStore = create<DoneDayState>()(
                 streak: 0,
                 totalGrowthHours: 0,
             },
+            onboardingDismissed: false,
 
             addGoal: (newGoal) => {
                 const id = generateId();
@@ -52,6 +58,8 @@ export const useDoneDayStore = create<DoneDayState>()(
                 const newBlocks: GrowthBlock[] = Array.from({ length: goal.frequencyPerWeek }).map((_, i) => ({
                     id: `${id}-block-${i}`,
                     type: 'GROWTH',
+                    goalId: id,
+                    color: goal.color,
                     title: goal.title,
                     date: null,
                     durationMinutes: goal.durationMinutes,
@@ -67,6 +75,37 @@ export const useDoneDayStore = create<DoneDayState>()(
                 }));
             },
 
+            updateGoal: (id, updates) => {
+                set((state) => {
+                    const goal = state.goals.find(g => g.id === id);
+                    if (!goal) return state;
+                    const updatedGoal = { ...goal, ...updates };
+
+                    const updatedBlocks = state.blocks.map(b => {
+                        if (b.type === 'GROWTH' && b.goalId === id) {
+                            return {
+                                ...b,
+                                title: updatedGoal.title,
+                                color: updatedGoal.color
+                            };
+                        }
+                        return b;
+                    });
+
+                    return {
+                        goals: state.goals.map(g => g.id === id ? updatedGoal : g),
+                        blocks: updatedBlocks,
+                    };
+                });
+            },
+
+            deleteGoal: (id) => {
+                set((state) => ({
+                    goals: state.goals.filter(g => g.id !== id),
+                    blocks: state.blocks.filter(b => !(b.type === 'GROWTH' && b.goalId === id)),
+                }));
+            },
+
             addNormalBlock: (newBlock) => {
                 const block: NormalBlock = {
                     ...newBlock,
@@ -78,18 +117,80 @@ export const useDoneDayStore = create<DoneDayState>()(
                 }));
             },
 
-            updateBlockSchedule: (id, date, startTime, durationMinutes) => {
+            updateNormalBlock: (id, updates) => {
                 set((state) => ({
-                    blocks: state.blocks.map(b =>
-                        b.id === id ? { ...b, date, startTime, durationMinutes } : b
-                    )
+                    blocks: state.blocks.map(b => b.id === id ? { ...b, ...updates } : b)
                 }));
+            },
+
+            updateBlockSchedule: (id, date, startTime, durationMinutes) => {
+                set((state) => {
+                    if (!date || !startTime) {
+                        return {
+                            blocks: state.blocks.map(b =>
+                                b.id === id ? { ...b, date, startTime, durationMinutes } : b
+                            )
+                        };
+                    }
+
+                    const timeToMins = (t: string) => {
+                        const [h, m] = t.split(':').map(Number);
+                        return h * 60 + m;
+                    };
+                    const minsToTime = (mins: number) => {
+                        const m = Math.min(mins, 24 * 60 - 1); // cap at 23:59
+                        const hh = Math.floor(m / 60).toString().padStart(2, '0');
+                        const mm = (m % 60).toString().padStart(2, '0');
+                        return `${hh}:${mm}`;
+                    };
+
+                    let updatedBlocks = [...state.blocks];
+                    const targetIdx = updatedBlocks.findIndex(b => b.id === id);
+                    if (targetIdx === -1) return state;
+
+                    const targetBlock = { ...updatedBlocks[targetIdx], date, startTime, durationMinutes };
+                    updatedBlocks[targetIdx] = targetBlock;
+
+                    // Recursive shift
+                    const shiftOverlapping = (blocksArr: typeof state.blocks, dominantBlock: any): typeof state.blocks => {
+                        let current = [...blocksArr];
+                        const domStart = timeToMins(dominantBlock.startTime);
+                        const domEnd = domStart + dominantBlock.durationMinutes;
+
+                        let didShift = false;
+                        for (let i = 0; i < current.length; i++) {
+                            const b = current[i];
+                            if (b.id === dominantBlock.id || b.date !== dominantBlock.date || !b.startTime) continue;
+
+                            const bStart = timeToMins(b.startTime);
+                            const bEnd = bStart + b.durationMinutes;
+
+                            const isOverlapping = (bStart < domEnd && bEnd > domStart);
+                            if (isOverlapping) {
+                                // Push b down to domEnd
+                                const updatedB = { ...b, startTime: minsToTime(domEnd) };
+                                current[i] = updatedB;
+                                // Need to resolve overlaps caused by pushing b
+                                current = shiftOverlapping(current, updatedB);
+                                didShift = true;
+                            }
+                        }
+                        return current;
+                    };
+
+                    const finalBlocks = shiftOverlapping(updatedBlocks, targetBlock);
+                    return { blocks: finalBlocks };
+                });
             },
 
             deleteBlock: (id) => {
                 set((state) => ({
                     blocks: state.blocks.filter(b => b.id !== id),
                 }));
+            },
+
+            dismissOnboarding: () => {
+                set(() => ({ onboardingDismissed: true }));
             },
 
             startTimer: (id) => {

@@ -57,13 +57,11 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
     };
 
     const totalMinutes = Math.floor(seconds / 60);
-    const canIssueAchievement = totalMinutes >= ACHIEVEMENT_TARGET_MINUTES;
+    const canComplete = totalMinutes >= block.targetMinutes;
 
     const handleComplete = () => {
-        if (!canIssueAchievement) {
-            window.alert('시간이 미충족 되었어요. 누적 60분을 채워야 인증카드가 발급됩니다.');
-            return;
-        }
+        if (!canComplete) return;
+
         setIsActive(false);
         completeBlock(block.id, totalMinutes);
         onClose();
@@ -85,8 +83,8 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const progressPercent = Math.min(100, (seconds / (ACHIEVEMENT_TARGET_MINUTES * 60)) * 100);
-    const remainingMinutes = Math.max(0, ACHIEVEMENT_TARGET_MINUTES - totalMinutes);
+    const progressPercent = Math.min(100, (seconds / (block.targetMinutes * 60)) * 100);
+    const remainingMinutes = Math.max(0, block.targetMinutes - totalMinutes);
 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg-surface p-4 animate-fade-in">
@@ -105,7 +103,7 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                         목표 시간: {block.targetMinutes}분
                     </p>
                     <p className="text-xs text-text-muted mt-2 font-semibold">
-                        인증 카드: 누적 {ACHIEVEMENT_TARGET_MINUTES}분 달성 시 발급 · 남은 {remainingMinutes}분
+                        남은 시간: {remainingMinutes}분
                     </p>
                 </div>
 
@@ -144,11 +142,12 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
 
                         <button
                             onClick={handleComplete}
+                            disabled={!canComplete}
                             className={clsx(
                                 "w-20 h-20 rounded-full flex flex-col items-center justify-center shadow-md transition-transform active:scale-95 group",
-                                canIssueAchievement
+                                canComplete
                                     ? "bg-growth-hover text-white"
-                                    : "bg-bg-surface border border-border-strong text-text-muted cursor-not-allowed"
+                                    : "bg-bg-surface border border-border-strong text-text-muted cursor-not-allowed opacity-50"
                             )}
                         >
                             <CheckCircle2 className="w-8 h-8 group-hover:scale-110 transition-transform" />
