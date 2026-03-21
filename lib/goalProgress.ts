@@ -29,7 +29,8 @@ export function getWeeklyGoalSummary(goals: Goal[], blocks: TimeBlock[], date: D
     });
 
     blocks
-        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && Boolean(b.date) && b.date >= startDateStr && b.date <= endDateStr)
+        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && b.date !== null)
+        .filter((b) => b.date >= startDateStr && b.date <= endDateStr)
         .forEach((b) => {
             progressByGoalId[b.goalId] = (progressByGoalId[b.goalId] || 0) + b.durationMinutes;
         });
