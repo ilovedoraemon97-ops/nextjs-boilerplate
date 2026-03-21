@@ -1,5 +1,5 @@
 import { startOfWeek, endOfWeek, format } from 'date-fns';
-import { Goal, TimeBlock } from '@/types';
+import { Goal, TimeBlock, GrowthBlock } from '@/types';
 
 export interface WeeklyGoalSummary {
     startDateStr: string;
@@ -29,7 +29,7 @@ export function getWeeklyGoalSummary(goals: Goal[], blocks: TimeBlock[], date: D
     });
 
     blocks
-        .filter((b) => b.type === 'GROWTH' && b.date && b.date >= startDateStr && b.date <= endDateStr)
+        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && Boolean(b.date) && b.date >= startDateStr && b.date <= endDateStr)
         .forEach((b) => {
             progressByGoalId[b.goalId] = (progressByGoalId[b.goalId] || 0) + b.durationMinutes;
         });
