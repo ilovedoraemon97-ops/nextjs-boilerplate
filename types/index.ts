@@ -15,10 +15,7 @@ export interface GrowthBlock extends BaseTimeBlock {
     type: 'GROWTH';
     goalId: string;
     color: string;
-    status: BlockStatus;
-    targetMinutes: number;
-    elapsedMinutes: number;
-    isCarriedOver: boolean; // Indicates if block failed and carried from previous week
+    // Status and extra fields removed since all calendar blocks are post-facto executed sessions
 }
 
 export interface NormalBlock extends BaseTimeBlock {
@@ -31,8 +28,7 @@ export interface Goal {
     id: string;
     title: string;
     color: string;
-    durationMinutes: number; // e.g., 60 minutes per session
-    frequencyPerWeek: number; // e.g., 3 times/week
+    targetMinutesPerWeek: number; // e.g., 300 minutes (5 hours) per week
     createdAt: string;
 }
 
@@ -42,5 +38,8 @@ export interface UserStats {
     totalGrowthHours: number;
 }
 
-// Achievement card is issued after this many accumulated minutes.
-export const ACHIEVEMENT_TARGET_MINUTES = 60;
+export interface UserSettings {
+    activeStartHour: number; // e.g. 9 for 09:00
+    activeEndHour: number;   // e.g. 2 for 02:00
+    timeAxisInterval: 1 | 3; // 1-hour or 3-hour intervals
+}

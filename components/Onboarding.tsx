@@ -36,8 +36,7 @@ export default function Onboarding({ onComplete }: Props) {
         addGoal({
             title: preset.title,
             color: preset.color,
-            durationMinutes: preset.durationMinutes,
-            frequencyPerWeek: preset.frequencyPerWeek,
+            targetMinutesPerWeek: preset.durationMinutes * preset.frequencyPerWeek,
         });
         dismissOnboarding();
         onComplete?.();
@@ -85,7 +84,7 @@ export default function Onboarding({ onComplete }: Props) {
                         어떤 목표부터<br />시작해볼까요?
                     </h1>
                     <p className="text-text-muted font-medium">
-                        첫 번째 갓생 목표를 선택하시면<br />자동으로 이번 주 캘린더를 채워드립니다.
+                        첫 번째 갓생 목표를 선택하면<br />주간 목표가 생성됩니다.
                     </p>
                 </div>
 

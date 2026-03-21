@@ -35,7 +35,7 @@ export default function AchievementCard({ block, isOpen, onClose }: Props) {
                         <h3 className="text-sm font-bold text-text-muted mb-3 uppercase tracking-wider">Completed Block</h3>
                         <div className="flex justify-between items-center mb-2">
                             <span className="font-bold text-lg text-text-base">{block.title}</span>
-                            <span className="font-bold text-primary">{Math.floor(block.elapsedMinutes)}분</span>
+                            <span className="font-bold text-primary">{Math.floor(block.durationMinutes)}분</span>
                         </div>
                     </div>
 

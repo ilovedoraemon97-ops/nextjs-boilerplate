@@ -2,30 +2,33 @@
 import { useState, useEffect } from 'react';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import { X, Play, Pause, CheckCircle2, Flame } from 'lucide-react';
-import { GrowthBlock, ACHIEVEMENT_TARGET_MINUTES } from '@/types';
+import { Goal } from '@/types';
 import { clsx } from 'clsx';
-import { motion, AnimatePresence } from 'framer-motion';
+import { format, addMinutes } from 'date-fns';
+import { getWeeklyGoalSummary, WeeklyGoalSummary } from '@/lib/goalProgress';
 
 interface Props {
-    block?: GrowthBlock;
+    goal?: Goal;
     isOpen: boolean;
     onClose: () => void;
-    onComplete: () => void; // Used to trigger Achievement Card later
+    onComplete?: (payload: { summary: WeeklyGoalSummary; becameComplete: boolean }) => void;
 }
 
-export default function TimerModal({ block, isOpen, onClose, onComplete }: Props) {
-    const { startTimer, pauseTimer, completeBlock, syncGrowthProgress } = useDoneDayStore();
+export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props) {
+    const addGrowthBlock = useDoneDayStore(state => state.addGrowthBlock);
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
+    const [startTimeRef, setStartTimeRef] = useState<Date | null>(null);
 
     useEffect(() => {
-        if (isOpen && block) {
-            setSeconds(block.elapsedMinutes * 60);
-            setIsActive(block.status === 'RUNNING');
+        if (isOpen && goal) {
+            setSeconds(0);
+            setIsActive(false);
+            setStartTimeRef(null);
         } else {
             setIsActive(false);
         }
-    }, [isOpen, block]);
+    }, [isOpen, goal]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -37,41 +40,62 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         return () => clearInterval(interval);
     }, [isActive]);
 
-    useEffect(() => {
-        if (!isActive || !block) return;
-        if (seconds > 0 && seconds % 60 === 0) {
-            syncGrowthProgress(block, Math.floor(seconds / 60));
-        }
-    }, [seconds, isActive, block, syncGrowthProgress]);
-
-    if (!isOpen || !block) return null;
+    if (!isOpen || !goal) return null;
 
     const handlePlayPause = () => {
-        if (isActive) {
-            setIsActive(false);
-            pauseTimer(block.id, Math.floor(seconds / 60));
-        } else {
-            setIsActive(true);
-            startTimer(block.id);
+        if (!isActive && !startTimeRef) {
+            setStartTimeRef(new Date());
         }
+        setIsActive(!isActive);
     };
 
     const totalMinutes = Math.floor(seconds / 60);
-    const canComplete = totalMinutes >= block.targetMinutes;
+    const canComplete = totalMinutes >= 1; // Require at least 1 minute
 
     const handleComplete = () => {
-        if (!canComplete) return;
+        if (!canComplete || !startTimeRef) return;
 
         setIsActive(false);
-        completeBlock(block.id, totalMinutes);
+
+        const dateStr = format(startTimeRef, 'yyyy-MM-dd');
+        const startStr = format(startTimeRef, 'HH:mm');
+        const endStr = format(addMinutes(startTimeRef, totalMinutes), 'HH:mm');
+
+        const before = getWeeklyGoalSummary(
+            useDoneDayStore.getState().goals,
+            useDoneDayStore.getState().blocks,
+            startTimeRef
+        );
+
+        addGrowthBlock({
+            goalId: goal.id,
+            title: goal.title,
+            color: goal.color,
+            date: dateStr,
+            startTime: startStr,
+            endTime: endStr,
+            durationMinutes: totalMinutes,
+        });
+
+        const after = getWeeklyGoalSummary(
+            useDoneDayStore.getState().goals,
+            useDoneDayStore.getState().blocks,
+            startTimeRef
+        );
+
+        const becameComplete = after.completedGoalIds.some((id) => !before.completedGoalIds.includes(id));
+
         onClose();
-        onComplete();
+        onComplete?.({ summary: after, becameComplete });
     };
 
     const handleClose = () => {
-        if (isActive) {
-            pauseTimer(block.id, Math.floor(seconds / 60));
+        // If closing without completing, we lose the session.
+        // We could alert the user here, but for simplicity we just close.
+        if (isActive || seconds > 0) {
+            if (!confirm('타이머를 종료하시겠습니까? 기록되지 않은 시간은 사라집니다.')) return;
         }
+        setIsActive(false);
         onClose();
     };
 
@@ -83,8 +107,7 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    const progressPercent = Math.min(100, (seconds / (block.targetMinutes * 60)) * 100);
-    const remainingMinutes = Math.max(0, block.targetMinutes - totalMinutes);
+    const progressPercent = Math.min(100, (seconds / (60 * 60)) * 100);
 
     return (
         <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg-surface p-4 animate-fade-in">
@@ -98,12 +121,12 @@ export default function TimerModal({ block, isOpen, onClose, onComplete }: Props
                         <Flame className="w-4 h-4 mr-1.5" />
                         갓생 타이머
                     </div>
-                    <h2 className="text-3xl font-black text-text-base">{block.title}</h2>
+                    <h2 className="text-3xl font-black text-text-base">{goal.title}</h2>
                     <p className="text-text-muted mt-2 font-medium">
-                        목표 시간: {block.targetMinutes}분
+                        순수 집중 시간을 측정합니다.
                     </p>
                     <p className="text-xs text-text-muted mt-2 font-semibold">
-                        남은 시간: {remainingMinutes}분
+                        최소 1분 이상 진행해야 기록됩니다.
                     </p>
                 </div>
 

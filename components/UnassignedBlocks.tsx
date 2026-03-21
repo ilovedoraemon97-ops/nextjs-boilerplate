@@ -2,8 +2,8 @@
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import { useDroppable } from '@dnd-kit/core';
 import { clsx } from 'clsx';
-import { Inbox, CheckCircle2 } from 'lucide-react';
-import { TimeBlock, GrowthBlock } from '@/types';
+import { Inbox } from 'lucide-react';
+import { TimeBlock } from '@/types';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -26,8 +26,6 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
 
     const isGrowth = block.type === 'GROWTH';
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
-    const isCompleted = isGrowth && block.status === 'COMPLETED';
-
     return (
         <div
             ref={setNodeRef}
@@ -42,11 +40,9 @@ function DraggableBlock({ block, onClick }: DraggableBlockProps) {
         >
             <div className="flex items-center justify-between mb-1">
                 <div className="truncate font-bold text-sm">{block.title}</div>
-                {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 ml-1 shrink-0" />}
             </div>
             <div className="text-xs opacity-80 font-semibold flex justify-between">
                 <span>{block.durationMinutes}분</span>
-                {isGrowth && !isCompleted && <span>{Math.round(((block as GrowthBlock).elapsedMinutes / (block as GrowthBlock).targetMinutes) * 100)}%</span>}
             </div>
         </div>
     );

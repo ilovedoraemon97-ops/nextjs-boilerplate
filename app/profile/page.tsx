@@ -5,6 +5,8 @@ import { BarChart3, Settings, Trophy, Zap } from 'lucide-react';
 
 export default function ProfilePage() {
     const stats = useDoneDayStore(state => state.stats);
+    const settings = useDoneDayStore(state => state.settings);
+    const updateSettings = useDoneDayStore(state => state.updateSettings);
 
     return (
         <div className="flex flex-col min-h-full pb-24">
@@ -54,6 +56,51 @@ export default function ProfilePage() {
                         </div>
                         <div className="text-2xl font-black">{stats.totalGrowthHours.toFixed(1)}h</div>
                         <div className="text-xs text-text-muted mt-1">상위 15% 진입</div>
+                    </div>
+                </div>
+
+                {/* Settings Section */}
+                <div className="bg-bg-surface border border-border-subtle rounded-2xl p-5 shadow-sm">
+                    <h3 className="font-bold text-sm mb-4 flex items-center text-text-base tracking-tight">
+                        <Settings className="w-4 h-4 mr-1.5 text-text-muted" /> 활동 시간 설정
+                    </h3>
+                    <div className="flex flex-col space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-text-muted">시작 시간 (기상)</span>
+                            <select
+                                value={settings.activeStartHour}
+                                onChange={(e) => updateSettings({ activeStartHour: Number(e.target.value) })}
+                                className="bg-bg-base border border-border-strong rounded-lg p-2 text-xs font-bold w-24 outline-none"
+                            >
+                                {Array.from({ length: 24 }).map((_, i) => (
+                                    <option key={`start-${i}`} value={i}>{String(i).padStart(2, '0')}:00</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-text-muted">종료 시간 (취침)</span>
+                            <select
+                                value={settings.activeEndHour}
+                                onChange={(e) => updateSettings({ activeEndHour: Number(e.target.value) })}
+                                className="bg-bg-base border border-border-strong rounded-lg p-2 text-xs font-bold w-24 outline-none"
+                            >
+                                {Array.from({ length: 24 }).map((_, i) => (
+                                    <option key={`end-${i}`} value={i}>{String(i).padStart(2, '0')}:00</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-text-muted">달력 시간 단위</span>
+                            <select
+                                value={settings.timeAxisInterval || 3}
+                                onChange={(e) => updateSettings({ timeAxisInterval: Number(e.target.value) as 1 | 3 })}
+                                className="bg-bg-base border border-border-strong rounded-lg p-2 text-xs font-bold w-24 outline-none"
+                            >
+                                <option value={1}>1시간 간격</option>
+                                <option value={3}>3시간 간격</option>
+                            </select>
+                        </div>
+                        <p className="text-[10.5px] sm:text-xs text-text-muted mt-1 font-medium leading-relaxed">지정한 시간대만 달력에 표시되어 세로 공간을 효율적으로 사용합니다.</p>
                     </div>
                 </div>
 

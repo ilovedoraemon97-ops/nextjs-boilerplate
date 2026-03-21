@@ -30,6 +30,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
 
     // 0 = Monday, 1 = Tuesday ... 6 = Sunday
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
+    const [repeatWeeks, setRepeatWeeks] = useState<number>(1);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -56,6 +57,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
             setStartM('00');
             setEndH('10');
             setEndM('00');
+            setRepeatWeeks(1);
         }
     }, [isOpen, targetDate, blockToEdit]);
 
@@ -93,16 +95,19 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
             });
         } else if (targetDate) {
             const startOfScopeWeek = startOfWeek(parseISO(targetDate), { weekStartsOn: 1 });
-            selectedDays.forEach(dayIdx => {
-                const blockDate = format(addDays(startOfScopeWeek, dayIdx), 'yyyy-MM-dd');
-                addNormalBlock({
-                    title: title.trim(),
-                    date: blockDate,
-                    startTime: startTime,
-                    endTime: endTime,
-                    durationMinutes,
+            for (let w = 0; w < repeatWeeks; w++) {
+                const currentWeekStart = addDays(startOfScopeWeek, w * 7);
+                selectedDays.forEach(dayIdx => {
+                    const blockDate = format(addDays(currentWeekStart, dayIdx), 'yyyy-MM-dd');
+                    addNormalBlock({
+                        title: title.trim(),
+                        date: blockDate,
+                        startTime: startTime,
+                        endTime: endTime,
+                        durationMinutes,
+                    });
                 });
-            });
+            }
         }
 
         onClose();
@@ -176,6 +181,33 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
                         </div>
                     )}
 
+                    {!blockToEdit && (
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-text-muted">반복 기간 설정</label>
+                            <div className="flex space-x-2">
+                                {[
+                                    { label: '이번 주만', value: 1 },
+                                    { label: '4주 반복', value: 4 },
+                                    { label: '12주 (약 3달)', value: 12 }
+                                ].map((opt) => (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setRepeatWeeks(opt.value)}
+                                        className={clsx(
+                                            "flex-1 py-2 rounded-lg text-xs font-bold transition-all border",
+                                            repeatWeeks === opt.value
+                                                ? "bg-primary text-white border-primary"
+                                                : "bg-bg-base text-text-muted border-border-subtle hover:border-text-muted hover:text-text-base"
+                                        )}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-text-muted flex items-center">
@@ -214,7 +246,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
                             disabled={!blockToEdit && selectedDays.length === 0}
                             className="w-full bg-normal disabled:bg-border-strong disabled:text-text-muted hover:bg-normal-hover text-white rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
                         >
-                            {blockToEdit ? '일정 수정 저장' : `${selectedDays.length}일치 일정 저장`}
+                            {blockToEdit ? '일정 수정 저장' : `${repeatWeeks > 1 ? `${repeatWeeks}주간 ` : ''}${selectedDays.length}일치 일정 저장`}
                         </button>
                     </div>
                 </form>

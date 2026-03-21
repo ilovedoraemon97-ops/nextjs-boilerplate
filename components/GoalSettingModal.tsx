@@ -21,21 +21,21 @@ export default function GoalSettingModal({ isOpen, onClose, goalToEdit }: Props)
 
     const [title, setTitle] = useState('');
     const [color, setColor] = useState(COLORS[7]);
-    const [durationMinutes, setDurationMinutes] = useState(60);
-    const [frequency, setFrequency] = useState(3);
+    const [targetHours, setTargetHours] = useState(5);
+    const [targetMinutes, setTargetMinutes] = useState(0);
 
     useEffect(() => {
         if (isOpen) {
             if (goalToEdit) {
                 setTitle(goalToEdit.title);
                 setColor(goalToEdit.color || COLORS[7]);
-                setDurationMinutes(goalToEdit.durationMinutes);
-                setFrequency(goalToEdit.frequencyPerWeek);
+                setTargetHours(Math.floor(goalToEdit.targetMinutesPerWeek / 60));
+                setTargetMinutes(goalToEdit.targetMinutesPerWeek % 60);
             } else {
                 setTitle('');
                 setColor(COLORS[Math.floor(Math.random() * COLORS.length)]);
-                setDurationMinutes(60);
-                setFrequency(3);
+                setTargetHours(5);
+                setTargetMinutes(0);
             }
         }
     }, [isOpen, goalToEdit]);
@@ -46,19 +46,20 @@ export default function GoalSettingModal({ isOpen, onClose, goalToEdit }: Props)
         e.preventDefault();
         if (!title.trim()) return;
 
+        const totalMins = (targetHours * 60) + targetMinutes;
+        if (totalMins <= 0) return;
+
         if (goalToEdit) {
             updateGoal(goalToEdit.id, {
                 title: title.trim(),
                 color,
-                durationMinutes,
-                frequencyPerWeek: frequency, // frequency update doesn't spawn new blocks yet
+                targetMinutesPerWeek: totalMins,
             });
         } else {
             addGoal({
                 title: title.trim(),
                 color,
-                durationMinutes,
-                frequencyPerWeek: frequency,
+                targetMinutesPerWeek: totalMins,
             });
         }
 
@@ -112,40 +113,39 @@ export default function GoalSettingModal({ isOpen, onClose, goalToEdit }: Props)
                         <div className="space-y-2">
                             <label className="text-sm font-semibold text-text-muted flex items-center">
                                 <Clock className="w-4 h-4 mr-1" />
-                                1회 소요 시간
+                                주간 목표 시간
                             </label>
-                            <select
-                                value={durationMinutes}
-                                onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                                className="w-full bg-bg-base border border-border-subtle rounded-xl px-4 py-3 text-text-base focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium appearance-none"
-                            >
-                                <option value={30}>30분</option>
-                                <option value={60}>1시간</option>
-                                <option value={90}>1시간 30분</option>
-                                <option value={120}>2시간</option>
-                            </select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-semibold text-text-muted flex items-center">
-                                <CalendarDays className="w-4 h-4 mr-1" />
-                                주간 수행 횟수
-                            </label>
-                            <select
-                                value={frequency}
-                                onChange={(e) => setFrequency(Number(e.target.value))}
-                                className="w-full bg-bg-base border border-border-subtle rounded-xl px-4 py-3 text-text-base focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium appearance-none"
-                            >
-                                {[1, 2, 3, 4, 5, 6, 7].map(num => (
-                                    <option key={num} value={num}>주 {num}회</option>
-                                ))}
-                            </select>
+                            <div className="flex space-x-2">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="168"
+                                        value={targetHours}
+                                        onChange={(e) => setTargetHours(Number(e.target.value))}
+                                        className="w-full bg-bg-base border border-border-subtle rounded-xl px-4 py-3 text-text-base focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-muted font-medium pointer-events-none">시간</span>
+                                </div>
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        step="5"
+                                        value={targetMinutes}
+                                        onChange={(e) => setTargetMinutes(Number(e.target.value))}
+                                        className="w-full bg-bg-base border border-border-subtle rounded-xl px-4 py-3 text-text-base focus:outline-none focus:ring-2 focus:ring-primary/50 font-medium"
+                                    />
+                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-text-muted font-medium pointer-events-none">분</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div className="pt-2">
                         <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 text-sm text-text-muted text-center font-medium">
-                            목표를 생성하면 <strong className="text-primary">{title || '목표'}</strong> 블록이 <strong className="text-primary">{frequency}개</strong> 자동 생성됩니다.
+                            목표를 생성하면 <strong className="text-primary">{title || '목표'}</strong> 진행률을 게이지로 확인할 수 있습니다.
                         </div>
 
                         <button
