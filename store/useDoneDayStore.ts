@@ -144,30 +144,40 @@ export const useDoneDayStore = create<DoneDayState>()(
                     const targetBlock = { ...updatedBlocks[targetIdx], date, startTime, durationMinutes };
                     updatedBlocks[targetIdx] = targetBlock;
 
-                    // Recursive shift
+                    // Shift overlaps iteratively to avoid recursion loops
                     const shiftOverlapping = (blocksArr: typeof state.blocks, dominantBlock: any): typeof state.blocks => {
                         let current = [...blocksArr];
-                        const domStart = timeToMins(dominantBlock.startTime);
-                        const domEnd = domStart + dominantBlock.durationMinutes;
+                        const queue: any[] = [dominantBlock];
+                        const visited = new Set<string>();
 
-                        let didShift = false;
-                        for (let i = 0; i < current.length; i++) {
-                            const b = current[i];
-                            if (b.id === dominantBlock.id || b.date !== dominantBlock.date || !b.startTime) continue;
+                        while (queue.length > 0) {
+                            const dom = queue.shift();
+                            if (!dom?.startTime) continue;
+                            const domKey = `${dom.id}@${dom.startTime}`;
+                            if (visited.has(domKey)) continue;
+                            visited.add(domKey);
 
-                            const bStart = timeToMins(b.startTime);
-                            const bEnd = bStart + b.durationMinutes;
+                            const domStart = timeToMins(dom.startTime);
+                            const domEnd = domStart + dom.durationMinutes;
 
-                            const isOverlapping = (bStart < domEnd && bEnd > domStart);
-                            if (isOverlapping) {
-                                // Push b down to domEnd
-                                const updatedB = { ...b, startTime: minsToTime(domEnd) };
+                            for (let i = 0; i < current.length; i++) {
+                                const b = current[i];
+                                if (b.id === dom.id || b.date !== dom.date || !b.startTime) continue;
+
+                                const bStart = timeToMins(b.startTime);
+                                const bEnd = bStart + b.durationMinutes;
+                                const isOverlapping = (bStart < domEnd && bEnd > domStart);
+                                if (!isOverlapping) continue;
+
+                                const nextStart = minsToTime(domEnd);
+                                if (b.startTime === nextStart) continue; // prevent infinite loops
+
+                                const updatedB = { ...b, startTime: nextStart };
                                 current[i] = updatedB;
-                                // Need to resolve overlaps caused by pushing b
-                                current = shiftOverlapping(current, updatedB);
-                                didShift = true;
+                                queue.push(updatedB);
                             }
                         }
+
                         return current;
                     };
 
