@@ -28,12 +28,13 @@ export function getWeeklyGoalSummary(goals: Goal[], blocks: TimeBlock[], date: D
         progressByGoalId[g.id] = 0;
     });
 
-    blocks
-        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && b.date !== null)
-        .filter((b) => b.date >= startDateStr && b.date <= endDateStr)
-        .forEach((b) => {
-            progressByGoalId[b.goalId] = (progressByGoalId[b.goalId] || 0) + b.durationMinutes;
-        });
+    blocks.forEach((b) => {
+        if (b.type !== 'GROWTH') return;
+        if (b.date === null) return;
+        if (b.date < startDateStr || b.date > endDateStr) return;
+        const gb = b as GrowthBlock;
+        progressByGoalId[gb.goalId] = (progressByGoalId[gb.goalId] || 0) + gb.durationMinutes;
+    });
 
     const completedGoalIds = goals
         .filter((g) => progressByGoalId[g.id] >= g.targetMinutesPerWeek)
