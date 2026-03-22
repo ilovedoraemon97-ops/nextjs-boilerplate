@@ -348,6 +348,17 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     })}
                                 </select>
                                 <span className="text-text-muted font-medium">월</span>
+                                <button
+                                    onClick={() => {
+                                        const now = new Date();
+                                        setMonthCursor(startOfMonth(now));
+                                        setWeekStart(startOfWeekDf(now, { weekStartsOn: 1 }));
+                                        setIsMonthOpen(false);
+                                    }}
+                                    className="ml-1 px-2 py-1 rounded-lg border border-border-subtle bg-bg-surface-hover text-text-base font-semibold transition-colors hover:bg-bg-surface"
+                                >
+                                    이번주로
+                                </button>
                             </div>
                         </div>
                         <div className="p-4">
