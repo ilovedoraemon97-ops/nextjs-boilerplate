@@ -45,7 +45,8 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     const topPercent = getTopPercent(block.startTime, activeStartHour, activeEndHour, totalActiveMins);
     if (topPercent === null) return null; // hide if outside window
 
-    const heightPercent = (Math.max(block.durationMinutes, 3) / totalActiveMins) * 100;
+    const isShort = block.durationMinutes <= 30;
+    const heightPercent = ((isShort ? 2 : Math.max(block.durationMinutes, 3)) / totalActiveMins) * 100;
 
     const style = {
         top: `${topPercent}%`,
@@ -54,25 +55,31 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     };
 
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
+    const lineColorClass = isGrowth ? (block.color || 'bg-primary') : 'bg-normal';
 
     return (
         <div
             style={style}
             onClick={() => onClick?.(block)}
             className={clsx(
-                "absolute left-[1px] right-[1px] p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 transition-all overflow-hidden hover:z-50 shadow-sm outline outline-1 outline-bg-base",
+                "absolute left-[1px] right-[1px] transition-all overflow-hidden hover:z-50",
+                isShort
+                    ? "p-0 rounded-none"
+                    : "p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 shadow-sm outline outline-1 outline-bg-base",
                 "cursor-default",
-                isGrowth
-                    ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
-                    : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
+                isShort
+                    ? lineColorClass
+                    : isGrowth
+                        ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
+                        : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >
-            {block.type !== 'GROWTH' && (
+            {!isShort && block.type !== 'GROWTH' && (
                 <div className="flex items-start sm:items-center justify-between">
                     <span className="font-semibold truncate tracking-tight">{block.title}</span>
                 </div>
             )}
-            {block.type !== 'GROWTH' && block.durationMinutes >= 60 && (
+            {!isShort && block.type !== 'GROWTH' && block.durationMinutes >= 60 && (
                 <div className="flex items-center mt-[-1px] sm:mt-[1px] text-[6.5px] sm:text-[8px] opacity-70 font-medium tracking-tight">
                     <Clock className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] mr-[1px] sm:mr-0.5" />
                     {block.startTime}
