@@ -23,6 +23,11 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
     if (!isOpen || !goal) return null;
 
     const handleDelete = () => {
+        if (goal.pendingDeleteAt) {
+            updateGoal(goal.id, { pendingDeleteAt: null });
+            onClose();
+            return;
+        }
         const nextWeekStart = format(addWeeks(startOfWeek(new Date(), { weekStartsOn: 1 }), 1), 'yyyy-MM-dd');
         updateGoal(goal.id, { pendingDeleteAt: nextWeekStart });
         onClose();
@@ -85,7 +90,7 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                         className="w-full flex items-center justify-center bg-failed-bg text-failed-hover border border-failed-border hover:border-failed-hover rounded-xl py-3 text-sm font-bold transition-all"
                     >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        목표 삭제 (다음주부터 적용)
+                        목표 삭제/유지
                     </button>
                 </div>
             </div>
