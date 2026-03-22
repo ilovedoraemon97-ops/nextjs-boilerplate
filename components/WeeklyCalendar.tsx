@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale';
 // Drag/drop disabled for schedule blocks
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { TimeBlock } from '@/types';
 
 // --- Utilities ---
@@ -274,7 +274,14 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
             {isMonthOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsMonthOpen(false)}>
                     <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-border-subtle bg-bg-base space-y-3">
+                        <div className="px-5 py-4 border-b border-border-subtle bg-bg-base space-y-3 relative">
+                            <button
+                                onClick={() => setIsMonthOpen(false)}
+                                className="absolute top-3 right-3 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
+                                aria-label="닫기"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                             <div className="flex items-center justify-between">
                                 <button
                                     onClick={() => setMonthCursor((d) => subMonths(d, 1))}
@@ -295,35 +302,40 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                 </button>
                             </div>
                             <div className="flex items-center justify-center space-x-2 text-xs">
-                                <input
-                                    type="number"
-                                    min="2000"
-                                    max="2099"
-                                    value={format(monthCursor, 'yyyy')}
+                                <span className="text-text-muted font-medium">바로 이동하기</span>
+                                <select
+                                    value={Number(format(monthCursor, 'yyyy'))}
                                     onChange={(e) => {
-                                        const y = Math.max(2000, Math.min(2099, Number(e.target.value || 0)));
+                                        const y = Number(e.target.value);
                                         const m = Number(format(monthCursor, 'M')) - 1;
                                         const next = new Date(monthCursor);
                                         next.setFullYear(y, m, 1);
                                         setMonthCursor(startOfMonth(next));
                                     }}
-                                    className="w-20 bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
+                                    className="bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                >
+                                    {Array.from({ length: 10 }).map((_, i) => {
+                                        const year = 2020 + i;
+                                        return <option key={year} value={year}>{year}</option>;
+                                    })}
+                                </select>
                                 <span className="text-text-muted font-medium">년</span>
-                                <input
-                                    type="number"
-                                    min="1"
-                                    max="12"
-                                    value={format(monthCursor, 'M')}
+                                <select
+                                    value={Number(format(monthCursor, 'M'))}
                                     onChange={(e) => {
                                         const y = Number(format(monthCursor, 'yyyy'));
-                                        const m = Math.max(1, Math.min(12, Number(e.target.value || 1))) - 1;
+                                        const m = Number(e.target.value) - 1;
                                         const next = new Date(monthCursor);
                                         next.setFullYear(y, m, 1);
                                         setMonthCursor(startOfMonth(next));
                                     }}
-                                    className="w-16 bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
+                                    className="bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                >
+                                    {Array.from({ length: 12 }).map((_, i) => {
+                                        const month = i + 1;
+                                        return <option key={month} value={month}>{month}</option>;
+                                    })}
+                                </select>
                                 <span className="text-text-muted font-medium">월</span>
                             </div>
                         </div>
@@ -350,8 +362,8 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                             className={clsx(
                                                 "h-8 rounded-md text-[11px] font-semibold transition-colors",
                                                 inMonth ? "text-text-base" : "text-text-muted/50",
-                                                isActiveWeek ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-bg-surface-hover",
-                                                isCurrentWeek && !isActiveWeek && "bg-primary/5",
+                                                isActiveWeek ? "bg-primary/20 ring-2 ring-primary/60" : "hover:bg-bg-surface-hover",
+                                                isCurrentWeek && !isActiveWeek && "bg-primary/10",
                                                 isToday && "outline outline-1 outline-primary/40"
                                             )}
                                         >
@@ -360,14 +372,6 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     );
                                 })}
                             </div>
-                        </div>
-                        <div className="p-4 pt-0">
-                            <button
-                                onClick={() => setIsMonthOpen(false)}
-                                className="w-full bg-bg-surface-hover border border-border-strong text-text-base rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
-                            >
-                                닫기
-                            </button>
                         </div>
                     </div>
                 </div>
