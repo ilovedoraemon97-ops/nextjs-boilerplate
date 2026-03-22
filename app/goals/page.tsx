@@ -21,6 +21,7 @@ export default function GoalsPage() {
 
     const [isMounted, setIsMounted] = useState(false);
     const [fabHost, setFabHost] = useState<HTMLElement | null>(null);
+    const [fabRight, setFabRight] = useState<string>('1rem');
 
     // Setting Modal
     const [isSettingOpen, setIsSettingOpen] = useState(false);
@@ -46,6 +47,15 @@ export default function GoalsPage() {
         if (!isMounted) return;
         const host = document.getElementById('app-shell');
         setFabHost(host);
+        const updateRight = () => {
+            if (!host) return;
+            const rect = host.getBoundingClientRect();
+            const rightOffset = Math.max(16, window.innerWidth - rect.right + 16);
+            setFabRight(`${rightOffset}px`);
+        };
+        updateRight();
+        window.addEventListener('resize', updateRight);
+        return () => window.removeEventListener('resize', updateRight);
     }, [isMounted]);
 
     useEffect(() => {
@@ -160,8 +170,8 @@ export default function GoalsPage() {
             {fabHost && createPortal(
                 <button
                     onClick={handleAddClick}
-                    className="absolute bottom-24 right-4 left-auto w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
-                    style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
+                    className="fixed bottom-24 left-auto w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
+                    style={{ right: `calc(${fabRight} + env(safe-area-inset-right))`, left: 'auto' }}
                     aria-label="갓생 목표 추가"
                 >
                     <Target className="w-6 h-6" strokeWidth={2.5} />
