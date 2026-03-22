@@ -130,16 +130,6 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
 
                 <form onSubmit={handleSubmit} className="p-5 overflow-y-auto flex-1 flex flex-col space-y-5">
 
-                    {/* Date Scope Display */}
-                    {!blockToEdit && targetDate && (
-                        <div className="flex items-center space-x-2">
-                            <div className="text-xs font-semibold text-text-muted">기준 주간:</div>
-                            <div className="text-xs font-bold text-text-base bg-bg-base px-2 py-1 rounded border border-border-subtle">
-                                {format(startOfWeek(parseISO(targetDate), { weekStartsOn: 1 }), 'M월 d일')} 주차
-                            </div>
-                        </div>
-                    )}
-
                     <div className="space-y-1.5">
                         <label className="text-xs font-semibold text-text-muted">일정 내용</label>
                         <input
@@ -247,9 +237,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
                             disabled={!blockToEdit && selectedDays.length === 0}
                             className="w-full bg-normal disabled:bg-border-strong disabled:text-text-muted hover:bg-normal-hover text-white rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
                         >
-                            {blockToEdit
-                                ? '일정 수정 저장'
-                                : `${repeatWeeks === 0 ? '1년 반복 ' : repeatWeeks > 1 ? `${repeatWeeks}주간 ` : ''}${selectedDays.length}일치 일정 저장`}
+                            {blockToEdit ? '일정 수정 저장' : '저장'}
                         </button>
                     </div>
                 </form>
