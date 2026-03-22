@@ -46,7 +46,7 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     if (topPercent === null) return null; // hide if outside window
 
     const isShort = block.durationMinutes <= 30;
-    const heightPercent = ((isShort ? 2 : Math.max(block.durationMinutes, 3)) / totalActiveMins) * 100;
+    const heightPercent = (block.durationMinutes / totalActiveMins) * 100;
 
     const style = {
         top: `${topPercent}%`,
