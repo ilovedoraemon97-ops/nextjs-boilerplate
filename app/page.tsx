@@ -173,7 +173,7 @@ export default function Home() {
       {fabHost && createPortal(
         <button
           onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
-          className="fixed bottom-24 right-4 left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
+          className="absolute bottom-24 right-4 left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
           style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
           aria-label="일반 일정 추가"
         >
