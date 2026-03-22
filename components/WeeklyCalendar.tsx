@@ -2,8 +2,7 @@
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import { format, addDays, startOfWeek } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
+// Drag/drop disabled for schedule blocks
 import { clsx } from 'clsx';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { TimeBlock } from '@/types';
@@ -41,11 +40,6 @@ interface DraggableBlockProps {
 
 function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalActiveMins, onClick }: DraggableBlockProps) {
     const isGrowth = block.type === 'GROWTH';
-    const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-        id: block.id,
-        data: block,
-        disabled: isGrowth,
-    });
 
     const topPercent = getTopPercent(block.startTime, activeStartHour, activeEndHour, totalActiveMins);
     if (topPercent === null) return null; // hide if outside window
@@ -55,23 +49,18 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     const style = {
         top: `${topPercent}%`,
         height: `${heightPercent}%`,
-        transform: CSS.Translate.toString(transform),
-        opacity: isDragging ? 0.8 : 1,
-        zIndex: isDragging ? 999 : 10,
+        zIndex: 10,
     };
 
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
 
     return (
         <div
-            ref={setNodeRef}
             style={style}
-            {...listeners}
-            {...attributes}
             onClick={() => onClick?.(block)}
             className={clsx(
                 "absolute left-[1px] right-[1px] p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 transition-all overflow-hidden hover:z-50 shadow-sm outline outline-1 outline-bg-base",
-                isGrowth ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+                "cursor-default",
                 isGrowth
                     ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
                     : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
@@ -93,12 +82,10 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
 }
 
 // --- Droppable Slot ---
-function DroppableSlot({ id, topPercent, totalActiveHours }: { id: string; topPercent: number; totalActiveHours: number }) {
-    const { setNodeRef, isOver } = useDroppable({ id });
+function DroppableSlot({ topPercent, totalActiveHours }: { topPercent: number; totalActiveHours: number }) {
     return (
         <div
-            ref={setNodeRef}
-            className={clsx("absolute left-0 right-0 border-b border-border-subtle/10", isOver && "bg-primary/20 z-20")}
+            className="absolute left-0 right-0 border-b border-border-subtle/10"
             style={{ top: `${topPercent}%`, height: `${100 / (totalActiveHours * 2)}%` }}
         />
     );
@@ -155,8 +142,7 @@ function DayColumn({ date, blocks, activeStartHour, activeEndHour, totalActiveHo
                     const finalMins = offsetAbsoluteMins % (24 * 60);
                     const h = Math.floor(finalMins / 60).toString().padStart(2, '0');
                     const m = (finalMins % 60 === 0) ? '00' : '30';
-                    const slotId = `${dateStr}-${h}:${m}`;
-                    return <DroppableSlot key={slotId} id={slotId} topPercent={(i / (totalActiveHours * 2)) * 100} totalActiveHours={totalActiveHours} />;
+                    return <DroppableSlot key={`${dateStr}-${h}:${m}`} topPercent={(i / (totalActiveHours * 2)) * 100} totalActiveHours={totalActiveHours} />;
                 })}
 
                 {/* Render Absolute Blocks on top */}

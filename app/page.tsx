@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { DndContext, DragStartEvent, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { clsx } from 'clsx';
 import { format, startOfWeek } from 'date-fns';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
@@ -37,7 +36,6 @@ export default function Home() {
   const [normalBlockToEdit, setNormalBlockToEdit] = useState<NormalBlock | null>(null);
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-  const [activeDragBlock, setActiveDragBlock] = useState<TimeBlock | null>(null);
   const [timerGoal, setTimerGoal] = useState<Goal | null>(null);
 
   const updateBlockSchedule = useDoneDayStore(state => state.updateBlockSchedule);
@@ -73,47 +71,6 @@ export default function Home() {
     };
   }, [loadProgressFromServer]);
 
-  // Require a small movement to start drag, so clicks still work
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
-    })
-  );
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const block = blocks.find(b => b.id === active.id);
-    if (block?.type === 'NORMAL') setActiveDragBlock(block);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragBlock(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const blockId = active.id as string;
-    const overId = over.id as string; // 'unassigned' or 'YYYY-MM-DD-HH:mm'
-
-    // Find block
-    const block = blocks.find(b => b.id === blockId);
-    if (!block) return;
-    if (block.type === 'GROWTH') return;
-
-    if (overId === 'unassigned') {
-      // Move back to unassigned
-      updateBlockSchedule(blockId, null as any, '', block.durationMinutes);
-    } else {
-      // overId is "YYYY-MM-DD-HH:mm"
-      const datePart = overId.substring(0, 10);
-      const timePart = overId.substring(11); // HH:mm
-
-      // Update block to the exact date and time slot
-      updateBlockSchedule(blockId, datePart, timePart, block.durationMinutes);
-    }
-  };
-
   const handleBlockClick = (block: TimeBlock) => {
     setActionBlock(block);
   };
@@ -142,34 +99,12 @@ export default function Home() {
 
       <div className="flex-1 p-4 flex flex-col min-h-0 space-y-2">
 
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex-1 flex flex-col min-h-0 w-full">
-            <WeeklyCalendar
-              onBlockClick={handleBlockClick}
-              onAddNormalBlock={handleAddNormalBlockClick}
-            />
-          </div>
-          <DragOverlay>
-            {activeDragBlock ? (
-              <div
-                style={{
-                  width: 'calc(100vw / 7)',
-                  height: `${Math.max((activeDragBlock.durationMinutes / 60) * 45, 20)}px`
-                }}
-                className={clsx(
-                  "p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 shadow-sm outline outline-1 outline-bg-base opacity-[0.35] overflow-hidden",
-                  activeDragBlock.type === 'GROWTH'
-                    ? `${(activeDragBlock as GrowthBlock).color || 'bg-primary'} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
-                    : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
-                )}
-              >
-                <div className="flex items-start sm:items-center justify-between">
-                  <span className="font-semibold truncate tracking-tight">{activeDragBlock.title}</span>
-                </div>
-              </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        <div className="flex-1 flex flex-col min-h-0 w-full">
+          <WeeklyCalendar
+            onBlockClick={handleBlockClick}
+            onAddNormalBlock={handleAddNormalBlockClick}
+          />
+        </div>
       </div>
 
       {fabHost && createPortal(
