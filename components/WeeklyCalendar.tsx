@@ -274,24 +274,58 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
             {isMonthOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsMonthOpen(false)}>
                     <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between bg-bg-base">
-                            <button
-                                onClick={() => setMonthCursor((d) => subMonths(d, 1))}
-                                className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
-                                aria-label="이전 달"
-                            >
-                                <ChevronLeft className="w-4 h-4" />
-                            </button>
-                            <div className="text-sm font-bold text-text-base">
-                                {format(monthCursor, 'yyyy.MM')}
+                        <div className="px-5 py-4 border-b border-border-subtle bg-bg-base space-y-3">
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => setMonthCursor((d) => subMonths(d, 1))}
+                                    className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                                    aria-label="이전 달"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                </button>
+                                <div className="text-sm font-bold text-text-base">
+                                    {format(monthCursor, 'yyyy.MM')}
+                                </div>
+                                <button
+                                    onClick={() => setMonthCursor((d) => addMonths(d, 1))}
+                                    className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                                    aria-label="다음 달"
+                                >
+                                    <ChevronRight className="w-4 h-4" />
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setMonthCursor((d) => addMonths(d, 1))}
-                                className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
-                                aria-label="다음 달"
-                            >
-                                <ChevronRight className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center justify-center space-x-2 text-xs">
+                                <input
+                                    type="number"
+                                    min="2000"
+                                    max="2099"
+                                    value={format(monthCursor, 'yyyy')}
+                                    onChange={(e) => {
+                                        const y = Math.max(2000, Math.min(2099, Number(e.target.value || 0)));
+                                        const m = Number(format(monthCursor, 'M')) - 1;
+                                        const next = new Date(monthCursor);
+                                        next.setFullYear(y, m, 1);
+                                        setMonthCursor(startOfMonth(next));
+                                    }}
+                                    className="w-20 bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <span className="text-text-muted font-medium">년</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="12"
+                                    value={format(monthCursor, 'M')}
+                                    onChange={(e) => {
+                                        const y = Number(format(monthCursor, 'yyyy'));
+                                        const m = Math.max(1, Math.min(12, Number(e.target.value || 1))) - 1;
+                                        const next = new Date(monthCursor);
+                                        next.setFullYear(y, m, 1);
+                                        setMonthCursor(startOfMonth(next));
+                                    }}
+                                    className="w-16 bg-bg-surface border border-border-subtle rounded-lg px-2 py-1 text-center font-semibold text-text-base focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                <span className="text-text-muted font-medium">월</span>
+                            </div>
                         </div>
                         <div className="p-4">
                             <div className="grid grid-cols-7 text-[10px] text-text-muted mb-2">
