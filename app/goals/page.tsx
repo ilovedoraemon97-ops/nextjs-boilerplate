@@ -106,7 +106,7 @@ export default function GoalsPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
                                                 <h3 className="font-bold text-text-base text-lg truncate pr-2">
-                                                    {goal.title}{isPendingDelete ? ' (다음주 삭제예정)' : ''}
+                                                    {goal.title}{isPendingDelete ? ' (삭제예정)' : ''}
                                                 </h3>
                                                 <div className="flex items-center text-text-muted">
                                                     <span className="text-xs font-bold mr-1">

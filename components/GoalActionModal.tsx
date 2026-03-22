@@ -33,13 +33,20 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
         .slice()
         .sort((a, b) => (a.date! > b.date! ? -1 : 1));
 
+    const grouped = detailList.reduce<Record<string, GrowthBlock[]>>((acc, b) => {
+        const key = b.date || '';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(b);
+        return acc;
+    }, {});
+
     return (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
             <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden animate-slide-up border border-border-strong mb-safe" onClick={e => e.stopPropagation()}>
                 <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between bg-bg-base shrink-0">
                     <h2 className="text-sm font-bold flex items-center text-text-base">
                         <div className={`w-3 h-3 rounded-full mr-2 ${goal.color}`} />
-                        {goal.title}{goal.pendingDeleteAt ? ' (다음주 삭제예정)' : ''}
+                        {goal.title}{goal.pendingDeleteAt ? ' (삭제예정)' : ''}
                     </h2>
                     <button onClick={onClose} className="p-1.5 text-text-muted hover:bg-bg-surface rounded-full transition-colors">
                         <X className="w-4 h-4" />
@@ -90,19 +97,26 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
-                        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-3">
+                        <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4">
                             {detailList.length === 0 ? (
                                 <div className="text-center text-sm text-text-muted py-8">아직 기록이 없어요.</div>
                             ) : (
-                                detailList.map((b) => {
-                                    const dateLabel = b.date ? format(parseISO(b.date), 'M/d(EEE)', { locale: ko }) : '';
-                                    const timeLabel = b.startTime && b.endTime ? `${b.startTime}~${b.endTime}` : '';
+                                Object.entries(grouped).map(([dateStr, items]) => {
+                                    const dateLabel = dateStr ? format(parseISO(dateStr), 'M/d(EEE)', { locale: ko }) : '';
                                     return (
-                                        <div key={b.id} className="flex items-center justify-between text-sm bg-bg-base border border-border-subtle rounded-xl px-3 py-2">
-                                            <div className="font-semibold text-text-base">
-                                                {dateLabel} {timeLabel}
+                                        <div key={dateStr} className="bg-bg-base border border-border-subtle rounded-xl px-3 py-2">
+                                            <div className="text-xs font-bold text-text-muted mb-2">{dateLabel}</div>
+                                            <div className="space-y-1.5">
+                                                {items.map((b) => {
+                                                    const timeLabel = b.startTime && b.endTime ? `${b.startTime} ~ ${b.endTime}` : '';
+                                                    return (
+                                                        <div key={b.id} className="flex items-center justify-between text-sm">
+                                                            <div className="text-text-base font-semibold">· {timeLabel}</div>
+                                                            <div className="text-text-muted font-bold">{b.durationMinutes}분</div>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
-                                            <div className="text-text-muted font-bold">{b.durationMinutes}분</div>
                                         </div>
                                     );
                                 })
