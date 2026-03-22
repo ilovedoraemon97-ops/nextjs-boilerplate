@@ -181,7 +181,7 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                                                                         <div className="text-text-muted/70 font-medium">· {timeLabel}</div>
                                                                         <button
                                                                             onClick={() => setGrowthHidden(b.id, false)}
-                                                                            className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-bold border border-primary/20 hover:bg-primary/15"
+                                                                            className="min-w-[64px] px-2 py-1 rounded-full bg-primary text-white text-[11px] font-bold shadow-sm"
                                                                         >
                                                                             복원하기
                                                                         </button>
