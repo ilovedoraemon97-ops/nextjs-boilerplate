@@ -23,6 +23,8 @@ import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 export default function Home() {
   const [activeBlock, setActiveBlock] = useState<GrowthBlock | undefined>(undefined);
   const [actionBlock, setActionBlock] = useState<TimeBlock | null>(null);
+  const [pickBlocksOpen, setPickBlocksOpen] = useState(false);
+  const [pickBlocks, setPickBlocks] = useState<GrowthBlock[]>([]);
   const [isTimerOpen, setIsTimerOpen] = useState(false);
   const [isAchievementOpen, setIsAchievementOpen] = useState(false);
   const [isWeeklyCertOpen, setIsWeeklyCertOpen] = useState(false);
@@ -74,6 +76,21 @@ export default function Home() {
   }, [loadProgressFromServer]);
 
   const handleBlockClick = (block: TimeBlock) => {
+    if (block.type === 'GROWTH' && block.date && block.startTime) {
+      const hour = block.startTime.split(':')[0];
+      const sameHour = blocks.filter(
+        (b): b is GrowthBlock =>
+          b.type === 'GROWTH' &&
+          b.date === block.date &&
+          b.startTime?.startsWith(`${hour}:`) &&
+          !(b as GrowthBlock).hidden
+      );
+      if (sameHour.length > 1) {
+        setPickBlocks(sameHour);
+        setPickBlocksOpen(true);
+        return;
+      }
+    }
     setActionBlock(block);
   };
 
@@ -161,6 +178,34 @@ export default function Home() {
           }
         }}
       />
+
+      {pickBlocksOpen && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setPickBlocksOpen(false)}>
+          <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative" onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between bg-bg-base">
+              <h3 className="text-sm font-bold text-text-base">어떤 기록을 선택할까요?</h3>
+              <button onClick={() => setPickBlocksOpen(false)} className="p-1.5 text-text-muted hover:bg-bg-surface rounded-full transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-2">
+              {pickBlocks.map((b) => (
+                <button
+                  key={b.id}
+                  onClick={() => {
+                    setPickBlocksOpen(false);
+                    setActionBlock(b);
+                  }}
+                  className="w-full flex items-center justify-between bg-bg-base border border-border-subtle rounded-xl px-4 py-3 text-sm font-semibold text-text-base hover:bg-bg-surface-hover"
+                >
+                  <span>{b.startTime}~{b.endTime}</span>
+                  <span className="text-text-muted">{b.durationMinutes}분</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <GoalSettingModal
         isOpen={isGoalModalOpen}
