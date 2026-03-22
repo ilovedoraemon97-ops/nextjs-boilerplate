@@ -113,17 +113,17 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                                     const totalMinutes = items.reduce((sum, b) => sum + b.durationMinutes, 0);
                                     return (
                                         <div key={dateStr} className="bg-bg-base border border-border-subtle rounded-xl px-3 py-2">
-                                            <div className="flex items-center justify-between text-xs font-bold text-text-muted mb-2">
+                                            <div className="flex items-center justify-between text-sm font-bold text-text-base mb-2">
                                                 <span>{dateLabel}</span>
-                                                <span>합계 {totalMinutes}분</span>
+                                                <span>총 {totalMinutes}분</span>
                                             </div>
                                             <div className="space-y-1.5">
                                                 {items.map((b) => {
                                                     const timeLabel = b.startTime && b.endTime ? `${b.startTime} ~ ${b.endTime}` : '';
                                                     return (
-                                                        <div key={b.id} className="flex items-center justify-between text-sm">
-                                                            <div className="text-text-base font-semibold">· {timeLabel}</div>
-                                                            <div className="text-text-muted font-bold">{b.durationMinutes}분</div>
+                                                        <div key={b.id} className="flex items-center justify-between text-xs">
+                                                            <div className="text-text-muted/80 font-medium">· {timeLabel}</div>
+                                                            <div className="text-text-muted/80 font-semibold">{b.durationMinutes}분</div>
                                                         </div>
                                                     );
                                                 })}
