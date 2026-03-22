@@ -36,7 +36,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-bg-base text-text-base flex justify-center`}
       >
-        <div className="w-full sm:max-w-md bg-bg-surface min-h-screen relative shadow-2xl overflow-hidden flex flex-col pb-20">
+        <div id="app-shell" className="w-full sm:max-w-md bg-bg-surface min-h-screen relative shadow-2xl overflow-hidden flex flex-col pb-20">
           <main className="flex-1 w-full h-full overflow-y-auto">
             {children}
           </main>

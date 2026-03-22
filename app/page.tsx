@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DndContext, DragStartEvent, DragEndEvent, DragOverlay, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { clsx } from 'clsx';
 import { format, startOfWeek } from 'date-fns';
@@ -27,6 +28,7 @@ export default function Home() {
   const [isWeeklyCertOpen, setIsWeeklyCertOpen] = useState(false);
   const [weeklySummary, setWeeklySummary] = useState<WeeklyGoalSummary | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [fabHost, setFabHost] = useState<HTMLElement | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -124,6 +126,12 @@ export default function Home() {
     setIsNormalModalOpen(true);
   };
 
+  useEffect(() => {
+    if (!isMounted) return;
+    const host = document.getElementById('app-shell');
+    setFabHost(host);
+  }, [isMounted]);
+
   if (!isMounted) return null;
 
   return (
@@ -162,19 +170,22 @@ export default function Home() {
         </DndContext>
       </div>
 
-      <button
-        onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
-        className="fixed bottom-24 !right-4 !left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
-        style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
-        aria-label="일반 일정 추가"
-      >
-        <CalendarDays className="w-6 h-6" strokeWidth={2.5} />
-        <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-normal flex items-center justify-center shadow-sm">
-          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
-            <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
-          </svg>
-        </span>
-      </button>
+      {fabHost && createPortal(
+        <button
+          onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
+          className="fixed bottom-24 right-4 left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
+          style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
+          aria-label="일반 일정 추가"
+        >
+          <CalendarDays className="w-6 h-6" strokeWidth={2.5} />
+          <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-normal flex items-center justify-center shadow-sm">
+            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
+              <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
+            </svg>
+          </span>
+        </button>,
+        fabHost
+      )}
 
       <BlockActionModal
         block={actionBlock}
