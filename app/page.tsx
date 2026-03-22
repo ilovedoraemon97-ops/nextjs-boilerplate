@@ -121,44 +121,37 @@ export default function Home() {
 
       <div className="flex-1 p-4 flex flex-col min-h-0 space-y-2">
 
-        <div className="flex-1 flex flex-col min-h-0 w-full">
+        <div className="relative flex-1 flex flex-col min-h-0 w-full">
           <WeeklyCalendar
             onBlockClick={handleBlockClick}
             onAddNormalBlock={handleAddNormalBlockClick}
           />
-        </div>
 
-        {goals.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {goals.map((goal) => {
-              const doneMins = weeklySummarySnapshot.progressByGoalId[goal.id] || 0;
-              const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
-              return (
-                <button
-                  key={goal.id}
-                  onClick={() => {
-                    // Jump to goals detail via existing action flow
-                    router.push(`/goals?goalId=${goal.id}&detail=1`);
-                  }}
-                  className={`relative w-full overflow-hidden rounded-2xl border border-border-strong px-4 py-3 text-left ${goal.color} opacity-70`}
-                >
+          {goals.length > 0 && (
+            <div className="absolute left-2 right-2 bottom-2 flex gap-2 overflow-x-auto rounded-xl bg-bg-surface/70 border border-border-subtle px-2 py-2 backdrop-blur-sm">
+              {goals.map((goal) => {
+                const doneMins = weeklySummarySnapshot.progressByGoalId[goal.id] || 0;
+                const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
+                return (
                   <div
-                    className={`absolute inset-x-0 top-0 ${goal.color} opacity-100`}
-                    style={{ height: `${percent}%` }}
+                    key={goal.id}
+                    className="relative shrink-0 px-2 py-1 rounded-lg border border-border-subtle bg-bg-base/70"
                   >
-                    <div className="h-full flex items-center justify-end pr-3">
-                      <span className="text-xs font-bold text-white">{percent}%</span>
+                    <div
+                      className={`absolute inset-0 rounded-lg ${goal.color} opacity-70`}
+                      style={{ height: `${percent}%` }}
+                    />
+                    <div className="relative z-10 flex items-center gap-1.5 text-[10px] font-semibold text-text-base">
+                      <span className={`w-2 h-2 rounded-full ${goal.color}`} />
+                      <span className="max-w-[70px] truncate">{goal.title}</span>
+                      <span className="text-text-muted">{percent}%</span>
                     </div>
                   </div>
-
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div className="font-bold text-white/95">{goal.title}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       {fabHost && createPortal(
