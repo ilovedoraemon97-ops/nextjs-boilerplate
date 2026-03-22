@@ -39,7 +39,7 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
     };
 
     const detailList = blocks
-        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && b.goalId === goal.id && Boolean(b.date))
+        .filter((b): b is GrowthBlock => b.type === 'GROWTH' && b.goalId === goal?.id && Boolean(b.date))
         .slice()
         .sort((a, b) => (a.date! > b.date! ? -1 : 1));
 
