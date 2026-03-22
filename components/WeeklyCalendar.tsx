@@ -360,37 +360,56 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     <div key={d} className="text-center font-semibold">{d}</div>
                                 ))}
                             </div>
-                            <div className="grid grid-cols-7 gap-1">
-                                {days.map((d) => {
-                                    const inMonth = isSameMonth(d, monthCursor);
-                                    const isToday = isSameDay(d, new Date());
-                                    const dWeekStart = startOfWeekDf(d, { weekStartsOn: 1 });
-                                    const isActiveWeek = isSameDay(dWeekStart, startDate);
-                                    const isCurrentWeek = isSameDay(dWeekStart, currentWeekStart);
+                            <div className="grid grid-rows-6 gap-1">
+                                {Array.from({ length: Math.ceil(days.length / 7) }).map((_, rowIdx) => {
+                                    const weekDays = days.slice(rowIdx * 7, rowIdx * 7 + 7);
+                                    const weekStartDate = weekDays[0];
+                                    const isActiveWeek = isSameDay(weekStartDate, startDate);
+                                    const isCurrentWeek = isSameDay(weekStartDate, currentWeekStart);
                                     const hoverStart = hoverWeekStart ? startOfWeekDf(hoverWeekStart, { weekStartsOn: 1 }) : null;
                                     const hoverEnd = hoverStart ? addDays(hoverStart, 6) : null;
-                                    const isHoverWeek = hoverStart && hoverEnd ? isWithinInterval(d, { start: hoverStart, end: hoverEnd }) : false;
-                                    const isCurrentWeekRange = isWithinInterval(d, { start: currentWeekStart, end: currentWeekEnd });
+                                    const isHoverWeek = hoverStart && hoverEnd ? isWithinInterval(weekStartDate, { start: hoverStart, end: hoverEnd }) : false;
                                     return (
-                                        <button
-                                            key={d.toISOString()}
-                                            onClick={() => {
-                                                setWeekStart(startOfWeekDf(d, { weekStartsOn: 1 }));
-                                                setIsMonthOpen(false);
-                                            }}
-                                            onMouseEnter={() => setHoverWeekStart(d)}
+                                        <div
+                                            key={`week-${rowIdx}`}
+                                            className="relative grid grid-cols-7 gap-1"
+                                            onMouseEnter={() => setHoverWeekStart(weekStartDate)}
                                             onMouseLeave={() => setHoverWeekStart(null)}
-                                            className={clsx(
-                                                "h-8 rounded-md text-[11px] font-semibold transition-colors",
-                                                inMonth ? "text-text-base" : "text-text-muted/50",
-                                                isActiveWeek ? "bg-text-base/10 ring-2 ring-text-base/30" : "hover:bg-bg-surface-hover",
-                                                isHoverWeek && !isActiveWeek && "bg-text-base/5",
-                                                isCurrentWeekRange && !isActiveWeek && "bg-text-base/15 ring-2 ring-text-base/25",
-                                                isToday && "outline outline-1 outline-primary/40"
-                                            )}
                                         >
-                                            {format(d, 'd')}
-                                        </button>
+                                            {(isActiveWeek || isCurrentWeek || isHoverWeek) && (
+                                                <div
+                                                    className={clsx(
+                                                        "absolute inset-y-0 left-0 right-0 rounded-md",
+                                                        isActiveWeek
+                                                            ? "bg-text-base/10 ring-2 ring-text-base/30"
+                                                            : isCurrentWeek
+                                                                ? "bg-text-base/15 ring-2 ring-text-base/25"
+                                                                : "bg-text-base/5"
+                                                    )}
+                                                />
+                                            )}
+                                            {weekDays.map((d) => {
+                                                const inMonth = isSameMonth(d, monthCursor);
+                                                const isToday = isSameDay(d, new Date());
+                                                return (
+                                                    <button
+                                                        key={d.toISOString()}
+                                                        onClick={() => {
+                                                            setWeekStart(startOfWeekDf(d, { weekStartsOn: 1 }));
+                                                            setIsMonthOpen(false);
+                                                        }}
+                                                        className={clsx(
+                                                            "h-8 rounded-md text-[11px] font-semibold transition-colors relative",
+                                                            inMonth ? "text-text-base" : "text-text-muted/50",
+                                                            "hover:bg-bg-surface-hover",
+                                                            isToday && "outline outline-1 outline-primary/40"
+                                                        )}
+                                                    >
+                                                        {format(d, 'd')}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     );
                                 })}
                             </div>
