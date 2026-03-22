@@ -1,10 +1,11 @@
 'use client';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
-import { format, addDays, startOfWeek } from 'date-fns';
+import { format, addDays, startOfWeek, addWeeks } from 'date-fns';
 import { ko } from 'date-fns/locale';
 // Drag/drop disabled for schedule blocks
+import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { TimeBlock } from '@/types';
 
 // --- Utilities ---
@@ -172,6 +173,8 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
     const settings = useDoneDayStore(state => state.settings);
     const { activeStartHour, activeEndHour, timeAxisInterval = 3 } = settings;
 
+    const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+
     let totalActiveHours = 24;
     if (activeStartHour !== activeEndHour) {
         totalActiveHours = activeStartHour > activeEndHour
@@ -179,7 +182,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
             : activeEndHour - activeStartHour;
     }
 
-    const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+    const startDate = weekStart; // Monday
     const weekDates = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
 
     return (
@@ -191,9 +194,23 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     이번 주 일정
                 </h2>
                 <div className="flex items-center space-x-2 sm:space-x-3 text-[11px] sm:text-xs font-medium text-text-muted">
+                    <button
+                        onClick={() => setWeekStart((d) => addWeeks(d, -1))}
+                        className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                        aria-label="이전 주"
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                    </button>
                     <span className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md text-text-muted">
                         {format(startDate, 'M.d')} - {format(weekDates[6], 'M.d')}
                     </span>
+                    <button
+                        onClick={() => setWeekStart((d) => addWeeks(d, 1))}
+                        className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                        aria-label="다음 주"
+                    >
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
                 </div>
             </div>
 
