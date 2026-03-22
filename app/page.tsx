@@ -13,6 +13,7 @@ import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
 import NormalBlockModal from '@/components/NormalBlockModal';
 import Onboarding from '@/components/Onboarding';
 import BlockActionModal from '@/components/BlockActionModal';
+import { useRouter } from 'next/navigation';
 import GoalSettingModal from '@/components/GoalSettingModal';
 import { X, CalendarDays } from 'lucide-react';
 import { TimeBlock, GrowthBlock, NormalBlock, Goal } from '@/types';
@@ -37,6 +38,7 @@ export default function Home() {
   const [goalToEdit, setGoalToEdit] = useState<Goal | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [timerGoal, setTimerGoal] = useState<Goal | null>(null);
+  const router = useRouter();
 
   const updateBlockSchedule = useDoneDayStore(state => state.updateBlockSchedule);
   const blocks = useDoneDayStore(state => state.blocks);
@@ -129,6 +131,12 @@ export default function Home() {
         isOpen={!!actionBlock}
         onClose={() => setActionBlock(null)}
         growthMode="deleteOnly"
+        onHideGrowth={(block) => {
+          useDoneDayStore.getState().setGrowthHidden(block.id, true);
+        }}
+        onGoToGoalDetail={(goalId) => {
+          router.push(`/goals?goalId=${goalId}&detail=1`);
+        }}
         onUnassignGrowth={() => {
           if (actionBlock?.type === 'GROWTH') {
             useDoneDayStore.getState().updateBlockSchedule(actionBlock.id, null as any, '', actionBlock.durationMinutes);

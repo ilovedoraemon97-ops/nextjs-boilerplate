@@ -15,6 +15,7 @@ export interface GrowthBlock extends BaseTimeBlock {
     type: 'GROWTH';
     goalId: string;
     color: string;
+    hidden?: boolean;
     // Status and extra fields removed since all calendar blocks are post-facto executed sessions
 }
 

@@ -2,7 +2,7 @@
 import { X, Play, Pencil, Trash2, Target, List } from 'lucide-react';
 import { Goal } from '@/types';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, parseISO, startOfWeek, addWeeks } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { GrowthBlock } from '@/types';
@@ -13,14 +13,21 @@ interface Props {
     goal: Goal | null;
     onEditGoal: () => void;
     onStartTimer: () => void;
+    openDetailOnOpen?: boolean;
 }
 
-export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onStartTimer }: Props) {
+export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onStartTimer, openDetailOnOpen = false }: Props) {
     const updateGoal = useDoneDayStore(state => state.updateGoal);
     const blocks = useDoneDayStore(state => state.blocks);
+    const setGrowthHidden = useDoneDayStore(state => state.setGrowthHidden);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [showHidden, setShowHidden] = useState(false);
 
     if (!isOpen || !goal) return null;
+
+    useEffect(() => {
+        if (openDetailOnOpen) setIsDetailOpen(true);
+    }, [openDetailOnOpen]);
 
     const handleDelete = () => {
         if (goal.pendingDeleteAt) {
@@ -38,7 +45,17 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
         .slice()
         .sort((a, b) => (a.date! > b.date! ? -1 : 1));
 
-    const grouped = detailList.reduce<Record<string, GrowthBlock[]>>((acc, b) => {
+    const visibleList = detailList.filter(b => !b.hidden);
+    const hiddenList = detailList.filter(b => b.hidden);
+
+    const grouped = visibleList.reduce<Record<string, GrowthBlock[]>>((acc, b) => {
+        const key = b.date || '';
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(b);
+        return acc;
+    }, {});
+
+    const groupedHidden = hiddenList.reduce<Record<string, GrowthBlock[]>>((acc, b) => {
         const key = b.date || '';
         if (!acc[key]) acc[key] = [];
         acc[key].push(b);
@@ -105,7 +122,7 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                             </button>
                         </div>
                         <div className="max-h-[60vh] overflow-y-auto p-4 space-y-4">
-                            {detailList.length === 0 ? (
+                            {visibleList.length === 0 ? (
                                 <div className="text-center text-sm text-text-muted py-8">아직 기록이 없어요.</div>
                             ) : (
                                 Object.entries(grouped).map(([dateStr, items]) => {
@@ -131,6 +148,46 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                                         </div>
                                     );
                                 })
+                            )}
+
+                            {hiddenList.length > 0 && (
+                                <div className="mt-4">
+                                    <button
+                                        onClick={() => setShowHidden(!showHidden)}
+                                        className="w-full flex items-center justify-between text-xs font-bold text-text-muted bg-bg-base border border-border-subtle rounded-xl px-3 py-2"
+                                    >
+                                        <span>숨긴 이력</span>
+                                        <span>{showHidden ? '▲' : '▼'}</span>
+                                    </button>
+                                    {showHidden && (
+                                        <div className="mt-2 space-y-3">
+                                            {Object.entries(groupedHidden).map(([dateStr, items]) => {
+                                                const dateLabel = dateStr ? format(parseISO(dateStr), 'M/d(EEE)', { locale: ko }) : '';
+                                                return (
+                                                    <div key={dateStr} className="bg-bg-base border border-border-subtle rounded-xl px-3 py-2">
+                                                        <div className="text-xs font-bold text-text-muted mb-2">{dateLabel}</div>
+                                                        <div className="space-y-1.5">
+                                                            {items.map((b) => {
+                                                                const timeLabel = b.startTime && b.endTime ? `${b.startTime} ~ ${b.endTime}` : '';
+                                                                return (
+                                                                    <div key={b.id} className="flex items-center justify-between text-xs">
+                                                                        <div className="text-text-muted/70 font-medium">· {timeLabel}</div>
+                                                                        <button
+                                                                            onClick={() => setGrowthHidden(b.id, false)}
+                                                                            className="text-[10px] font-bold text-primary"
+                                                                        >
+                                                                            복원하기
+                                                                        </button>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
                             )}
                         </div>
                         <div className="p-4 pt-0">

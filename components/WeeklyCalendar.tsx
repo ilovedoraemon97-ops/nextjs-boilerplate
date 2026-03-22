@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale';
 // Drag/drop disabled for schedule blocks
 import { useState } from 'react';
 import { clsx } from 'clsx';
-import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { TimeBlock } from '@/types';
 
 // --- Utilities ---
@@ -83,12 +83,7 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
                     <span className="font-semibold truncate tracking-tight">{block.title}</span>
                 </div>
             )}
-            {!isShort && block.type !== 'GROWTH' && block.durationMinutes >= 60 && (
-                <div className="flex items-center mt-[-1px] sm:mt-[1px] text-[6.5px] sm:text-[8px] opacity-70 font-medium tracking-tight">
-                    <Clock className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] mr-[1px] sm:mr-0.5" />
-                    {block.startTime}
-                </div>
-            )}
+            
         </div>
     );
 }
@@ -274,7 +269,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     <div className="flex flex-1 w-full h-full min-w-0">
                         {weekDates.map(date => {
                             const dateStr = format(date, 'yyyy-MM-dd');
-                            const dayBlocks = blocks.filter(b => b.date === dateStr);
+                            const dayBlocks = blocks.filter(b => b.date === dateStr && !(b.type === 'GROWTH' && b.hidden));
                             return (
                                 <DayColumn
                                     key={dateStr}
@@ -294,7 +289,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
             {isMonthOpen && (
                 <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsMonthOpen(false)}>
                     <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative" onClick={(e) => e.stopPropagation()}>
-                        <div className="px-5 py-4 border-b border-border-subtle bg-bg-base space-y-3 relative">
+                        <div className="px-5 py-4 border-b border-border-subtle bg-bg-base space-y-3 relative pr-10">
                             <button
                                 onClick={() => setIsMonthOpen(false)}
                                 className="absolute top-3 right-3 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
@@ -388,9 +383,9 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                             className={clsx(
                                                 "h-8 rounded-md text-[11px] font-semibold transition-colors",
                                                 inMonth ? "text-text-base" : "text-text-muted/50",
-                                                isActiveWeek ? "bg-primary/25 ring-2 ring-primary/70" : "hover:bg-bg-surface-hover",
-                                                isHoverWeek && !isActiveWeek && "bg-primary/10",
-                                                isCurrentWeekRange && !isActiveWeek && "bg-primary/15 ring-2 ring-primary/50",
+                                                isActiveWeek ? "bg-text-base/10 ring-2 ring-text-base/30" : "hover:bg-bg-surface-hover",
+                                                isHoverWeek && !isActiveWeek && "bg-text-base/5",
+                                                isCurrentWeekRange && !isActiveWeek && "bg-text-base/15 ring-2 ring-text-base/25",
                                                 isToday && "outline outline-1 outline-primary/40"
                                             )}
                                         >

@@ -9,12 +9,14 @@ import { Target, Plus, ChevronRight } from 'lucide-react';
 import { Goal } from '@/types';
 import { getWeeklyGoalSummary } from '@/lib/goalProgress';
 import { format, startOfWeek } from 'date-fns';
+import { useSearchParams } from 'next/navigation';
 import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
 
 export default function GoalsPage() {
     const goals = useDoneDayStore(state => state.goals);
     const blocks = useDoneDayStore(state => state.blocks);
     const purgePendingGoals = useDoneDayStore(state => state.purgePendingGoals);
+    const searchParams = useSearchParams();
 
     const [isMounted, setIsMounted] = useState(false);
 
@@ -25,6 +27,7 @@ export default function GoalsPage() {
     // Action Modal
     const [isActionOpen, setIsActionOpen] = useState(false);
     const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
+    const [openDetailOnAction, setOpenDetailOnAction] = useState(false);
 
     // Timer Modal
     const [isTimerOpen, setIsTimerOpen] = useState(false);
@@ -37,10 +40,23 @@ export default function GoalsPage() {
         purgePendingGoals(startDateStr);
     }, []);
 
+    useEffect(() => {
+        if (!isMounted) return;
+        const goalId = searchParams.get('goalId');
+        const openDetail = searchParams.get('detail') === '1';
+        if (!goalId) return;
+        const target = goals.find(g => g.id === goalId);
+        if (!target) return;
+        setActiveGoal(target);
+        setOpenDetailOnAction(openDetail);
+        setIsActionOpen(true);
+    }, [isMounted, searchParams, goals]);
+
     if (!isMounted) return null;
 
     const handleGoalClick = (goal: Goal) => {
         setActiveGoal(goal);
+        setOpenDetailOnAction(false);
         setIsActionOpen(true);
     };
 
@@ -152,6 +168,7 @@ export default function GoalsPage() {
                 goal={activeGoal}
                 onEditGoal={handleEditGoal}
                 onStartTimer={handleStartTimer}
+                openDetailOnOpen={openDetailOnAction}
             />
 
             <TimerModal

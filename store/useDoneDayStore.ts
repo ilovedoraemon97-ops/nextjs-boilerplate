@@ -17,6 +17,7 @@ interface DoneDayState {
     deleteGoal: (id: string) => void;
     addNormalBlock: (block: Omit<NormalBlock, 'id' | 'type'>) => void;
     addGrowthBlock: (block: Omit<GrowthBlock, 'id' | 'type'>) => void;
+    setGrowthHidden: (id: string, hidden: boolean) => void;
     updateNormalBlock: (id: string, updates: Partial<Omit<NormalBlock, 'id' | 'type'>>) => void;
     updateBlockSchedule: (id: string, date: string, startTime: string, durationMinutes: number) => void;
     deleteBlock: (id: string) => void;
@@ -109,6 +110,12 @@ export const useDoneDayStore = create<DoneDayState>()(
                     }
                 }));
                 get().syncGrowthSession(block);
+            },
+
+            setGrowthHidden: (id, hidden) => {
+                set((state) => ({
+                    blocks: state.blocks.map(b => b.id === id ? { ...b, hidden } : b)
+                }));
             },
 
             updateNormalBlock: (id, updates) => {
