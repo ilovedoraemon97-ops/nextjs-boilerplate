@@ -83,7 +83,7 @@ export default function Home() {
         (b): b is GrowthBlock =>
           b.type === 'GROWTH' &&
           b.date === block.date &&
-          b.startTime?.startsWith(`${hour}:`) &&
+          b.startTime?.startsWith(`${hour}:`) === true &&
           !(b as GrowthBlock).hidden
       );
       if (sameHour.length > 1) {
