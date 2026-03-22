@@ -62,6 +62,12 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
         return acc;
     }, {});
 
+    useEffect(() => {
+        if (isDetailOpen && hiddenList.length > 0) {
+            setShowHidden(true);
+        }
+    }, [isDetailOpen, hiddenList.length]);
+
     return (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
             <div className="bg-bg-surface w-full max-w-sm rounded-t-2xl sm:rounded-2xl shadow-xl overflow-hidden animate-slide-up border border-border-strong mb-safe" onClick={e => e.stopPropagation()}>
