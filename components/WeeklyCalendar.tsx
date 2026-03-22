@@ -51,6 +51,7 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     const style = {
         top: `${topPercent}%`,
         height: `${heightPercent}%`,
+        minHeight: isShort ? '12px' : undefined,
         zIndex: 10,
     };
 
@@ -64,16 +65,19 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
             className={clsx(
                 "absolute left-[1px] right-[1px] transition-all overflow-hidden hover:z-50",
                 isShort
-                    ? "p-0 rounded-none"
+                    ? "p-0 rounded-none bg-transparent"
                     : "p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 shadow-sm outline outline-1 outline-bg-base",
                 "cursor-default",
                 isShort
-                    ? lineColorClass
+                    ? ""
                     : isGrowth
                         ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
                         : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >
+            {isShort && (
+                <div className={clsx("absolute left-0 right-0 top-0 h-[2px]", lineColorClass)} />
+            )}
             {!isShort && block.type !== 'GROWTH' && (
                 <div className="flex items-start sm:items-center justify-between">
                     <span className="font-semibold truncate tracking-tight">{block.title}</span>
