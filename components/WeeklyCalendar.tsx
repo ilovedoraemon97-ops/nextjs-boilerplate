@@ -1,6 +1,6 @@
 'use client';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
-import { format, addDays, startOfWeek, addWeeks, startOfMonth, endOfMonth, startOfWeek as startOfWeekDf, endOfWeek as endOfWeekDf, addMonths, subMonths, isSameMonth, isSameDay } from 'date-fns';
+import { format, addDays, startOfWeek, addWeeks, startOfMonth, endOfMonth, startOfWeek as startOfWeekDf, endOfWeek as endOfWeekDf, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval } from 'date-fns';
 import { ko } from 'date-fns/locale';
 // Drag/drop disabled for schedule blocks
 import { useState } from 'react';
@@ -187,6 +187,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
     const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [isMonthOpen, setIsMonthOpen] = useState(false);
     const [monthCursor, setMonthCursor] = useState(() => startOfMonth(new Date()));
+    const [hoverWeekStart, setHoverWeekStart] = useState<Date | null>(null);
 
     let totalActiveHours = 24;
     if (activeStartHour !== activeEndHour) {
@@ -206,6 +207,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
         ? `${format(startDate, 'yy')}.${startLabel}-${endLabel}`
         : `${format(startDate, 'yy')}.${startLabel}-${format(endDate, 'yy')}.${endLabel}`;
     const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const currentWeekEnd = addDays(currentWeekStart, 6);
     const monthStart = startOfMonth(monthCursor);
     const monthEnd = endOfMonth(monthCursor);
     const gridStart = startOfWeekDf(monthStart, { weekStartsOn: 1 });
@@ -370,6 +372,10 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     const dWeekStart = startOfWeekDf(d, { weekStartsOn: 1 });
                                     const isActiveWeek = isSameDay(dWeekStart, startDate);
                                     const isCurrentWeek = isSameDay(dWeekStart, currentWeekStart);
+                                    const hoverStart = hoverWeekStart ? startOfWeekDf(hoverWeekStart, { weekStartsOn: 1 }) : null;
+                                    const hoverEnd = hoverStart ? addDays(hoverStart, 6) : null;
+                                    const isHoverWeek = hoverStart && hoverEnd ? isWithinInterval(d, { start: hoverStart, end: hoverEnd }) : false;
+                                    const isCurrentWeekRange = isWithinInterval(d, { start: currentWeekStart, end: currentWeekEnd });
                                     return (
                                         <button
                                             key={d.toISOString()}
@@ -377,11 +383,14 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                                 setWeekStart(startOfWeekDf(d, { weekStartsOn: 1 }));
                                                 setIsMonthOpen(false);
                                             }}
+                                            onMouseEnter={() => setHoverWeekStart(d)}
+                                            onMouseLeave={() => setHoverWeekStart(null)}
                                             className={clsx(
                                                 "h-8 rounded-md text-[11px] font-semibold transition-colors",
                                                 inMonth ? "text-text-base" : "text-text-muted/50",
                                                 isActiveWeek ? "bg-primary/25 ring-2 ring-primary/70" : "hover:bg-bg-surface-hover",
-                                                isCurrentWeek && !isActiveWeek && "bg-primary/15 ring-2 ring-primary/50",
+                                                isHoverWeek && !isActiveWeek && "bg-primary/10",
+                                                isCurrentWeekRange && !isActiveWeek && "bg-primary/15 ring-2 ring-primary/50",
                                                 isToday && "outline outline-1 outline-primary/40"
                                             )}
                                         >
