@@ -1,6 +1,6 @@
 'use client';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
-import { format, addDays, startOfWeek, addWeeks } from 'date-fns';
+import { format, addDays, startOfWeek, addWeeks, startOfMonth, endOfMonth, startOfWeek as startOfWeekDf, endOfWeek as endOfWeekDf, addMonths, subMonths, isSameMonth, isSameDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 // Drag/drop disabled for schedule blocks
 import { useState } from 'react';
@@ -174,6 +174,8 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
     const { activeStartHour, activeEndHour, timeAxisInterval = 3 } = settings;
 
     const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [isMonthOpen, setIsMonthOpen] = useState(false);
+    const [monthCursor, setMonthCursor] = useState(() => startOfMonth(new Date()));
 
     let totalActiveHours = 24;
     if (activeStartHour !== activeEndHour) {
@@ -184,6 +186,16 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
 
     const startDate = weekStart; // Monday
     const weekDates = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
+    const rangeLabel = `${format(startDate, 'M.d')} - ${format(weekDates[6], 'M.d')}`;
+    const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
+    const monthStart = startOfMonth(monthCursor);
+    const monthEnd = endOfMonth(monthCursor);
+    const gridStart = startOfWeekDf(monthStart, { weekStartsOn: 1 });
+    const gridEnd = endOfWeekDf(monthEnd, { weekStartsOn: 1 });
+    const days: Date[] = [];
+    for (let d = gridStart; d <= gridEnd; d = addDays(d, 1)) {
+        days.push(d);
+    }
 
     return (
         <div className="bg-bg-surface rounded-xl border border-border-strong flex flex-col flex-1 w-full h-full min-h-0">
@@ -201,9 +213,13 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md text-text-muted">
-                        {format(startDate, 'M.d')} - {format(weekDates[6], 'M.d')}
-                    </span>
+                    <button
+                        onClick={() => { setMonthCursor(startOfMonth(startDate)); setIsMonthOpen(true); }}
+                        className="text-[9px] sm:text-[10px] border border-border-strong px-1.5 py-0.5 rounded-md text-text-muted hover:bg-bg-surface-hover transition-colors"
+                        aria-label="월간 달력 열기"
+                    >
+                        {rangeLabel}
+                    </button>
                     <button
                         onClick={() => setWeekStart((d) => addWeeks(d, 1))}
                         className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
@@ -254,6 +270,64 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                     </div>
                 </div>
             </div>
+
+            {isMonthOpen && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setIsMonthOpen(false)}>
+                    <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative" onClick={(e) => e.stopPropagation()}>
+                        <div className="px-5 py-4 border-b border-border-subtle flex items-center justify-between bg-bg-base">
+                            <button
+                                onClick={() => setMonthCursor((d) => subMonths(d, 1))}
+                                className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                                aria-label="이전 달"
+                            >
+                                <ChevronLeft className="w-4 h-4" />
+                            </button>
+                            <div className="text-sm font-bold text-text-base">
+                                {format(monthCursor, 'yyyy.MM')}
+                            </div>
+                            <button
+                                onClick={() => setMonthCursor((d) => addMonths(d, 1))}
+                                className="p-1 rounded-md hover:bg-bg-surface-hover transition-colors"
+                                aria-label="다음 달"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <div className="p-4">
+                            <div className="grid grid-cols-7 text-[10px] text-text-muted mb-2">
+                                {['월', '화', '수', '목', '금', '토', '일'].map((d) => (
+                                    <div key={d} className="text-center font-semibold">{d}</div>
+                                ))}
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                                {days.map((d) => {
+                                    const inMonth = isSameMonth(d, monthCursor);
+                                    const isToday = isSameDay(d, new Date());
+                                    const dWeekStart = startOfWeekDf(d, { weekStartsOn: 1 });
+                                    const isActiveWeek = isSameDay(dWeekStart, startDate);
+                                    return (
+                                        <button
+                                            key={d.toISOString()}
+                                            onClick={() => {
+                                                setWeekStart(startOfWeekDf(d, { weekStartsOn: 1 }));
+                                                setIsMonthOpen(false);
+                                            }}
+                                            className={clsx(
+                                                "h-8 rounded-md text-[11px] font-semibold transition-colors",
+                                                inMonth ? "text-text-base" : "text-text-muted/50",
+                                                isActiveWeek ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-bg-surface-hover",
+                                                isToday && "outline outline-1 outline-primary/40"
+                                            )}
+                                        >
+                                            {format(d, 'd')}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
