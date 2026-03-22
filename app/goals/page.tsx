@@ -11,9 +11,10 @@ import { Goal } from '@/types';
 import { getWeeklyGoalSummary } from '@/lib/goalProgress';
 import { format, startOfWeek } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
 
-export default function GoalsPage() {
+function GoalsPageInner() {
     const goals = useDoneDayStore(state => state.goals);
     const blocks = useDoneDayStore(state => state.blocks);
     const purgePendingGoals = useDoneDayStore(state => state.purgePendingGoals);
@@ -217,5 +218,13 @@ export default function GoalsPage() {
                 goals={goals}
             />
         </div>
+    );
+}
+
+export default function GoalsPage() {
+    return (
+        <Suspense>
+            <GoalsPageInner />
+        </Suspense>
     );
 }
