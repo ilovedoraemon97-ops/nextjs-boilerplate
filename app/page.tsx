@@ -45,14 +45,16 @@ export default function Home() {
   const goals = useDoneDayStore(state => state.goals);
   const carryOverFailedBlocks = useDoneDayStore(state => state.carryOverFailedBlocks);
   const loadProgressFromServer = useDoneDayStore(state => state.loadProgressFromServer);
+  const purgePendingGoals = useDoneDayStore(state => state.purgePendingGoals);
 
   useEffect(() => {
     setIsMounted(true);
     // Run carry over check on mount for the start of the current week
     const startOfCurrentWeek = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
     carryOverFailedBlocks(startOfCurrentWeek);
+    purgePendingGoals(startOfCurrentWeek);
     loadProgressFromServer();
-  }, [carryOverFailedBlocks, loadProgressFromServer]);
+  }, [carryOverFailedBlocks, loadProgressFromServer, purgePendingGoals]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabaseClient) return;

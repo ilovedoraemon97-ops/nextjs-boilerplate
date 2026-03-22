@@ -8,11 +8,13 @@ import TimerModal from '@/components/TimerModal';
 import { Target, Plus, ChevronRight } from 'lucide-react';
 import { Goal } from '@/types';
 import { getWeeklyGoalSummary } from '@/lib/goalProgress';
+import { format, startOfWeek } from 'date-fns';
 import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
 
 export default function GoalsPage() {
     const goals = useDoneDayStore(state => state.goals);
     const blocks = useDoneDayStore(state => state.blocks);
+    const purgePendingGoals = useDoneDayStore(state => state.purgePendingGoals);
 
     const [isMounted, setIsMounted] = useState(false);
 
@@ -31,6 +33,8 @@ export default function GoalsPage() {
 
     useEffect(() => {
         setIsMounted(true);
+        const startDateStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+        purgePendingGoals(startDateStr);
     }, []);
 
     if (!isMounted) return null;
@@ -91,6 +95,8 @@ export default function GoalsPage() {
                             const doneMins = getGoalProgress(goal.id);
                             const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
 
+                            const startDateStr = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                            const isPendingDelete = Boolean(goal.pendingDeleteAt && goal.pendingDeleteAt > startDateStr);
                             return (
                                 <button key={goal.id} onClick={() => handleGoalClick(goal)} className="w-full text-left bg-bg-surface rounded-2xl border border-border-strong p-5 flex flex-col shadow-sm hover:shadow-md hover:border-text-muted transition-all active:scale-[0.98]">
                                     <div className="flex items-center space-x-4 w-full">
@@ -99,7 +105,9 @@ export default function GoalsPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1">
-                                                <h3 className="font-bold text-text-base text-lg truncate pr-2">{goal.title}</h3>
+                                                <h3 className="font-bold text-text-base text-lg truncate pr-2">
+                                                    {goal.title}{isPendingDelete ? ' (다음주 삭제예정)' : ''}
+                                                </h3>
                                                 <div className="flex items-center text-text-muted">
                                                     <span className="text-xs font-bold mr-1">
                                                         {percent}%

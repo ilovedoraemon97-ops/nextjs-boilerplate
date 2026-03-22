@@ -22,6 +22,7 @@ interface DoneDayState {
     deleteBlock: (id: string) => void;
     dismissOnboarding: () => void;
     carryOverFailedBlocks: (weekStartDateStr: string) => void;
+    purgePendingGoals: (currentWeekStartStr: string) => void;
 
     // Supabase Sync
     syncGrowthSession: (block: GrowthBlock) => Promise<void>;
@@ -198,6 +199,17 @@ export const useDoneDayStore = create<DoneDayState>()(
 
             carryOverFailedBlocks: () => {
                 // No-op: growth blocks are created only after completion (post-facto).
+            },
+
+            purgePendingGoals: (currentWeekStartStr) => {
+                set((state) => {
+                    const toDelete = state.goals.filter(g => g.pendingDeleteAt && g.pendingDeleteAt <= currentWeekStartStr).map(g => g.id);
+                    if (toDelete.length === 0) return state;
+                    return {
+                        goals: state.goals.filter(g => !toDelete.includes(g.id)),
+                        blocks: state.blocks.filter(b => !(b.type === 'GROWTH' && toDelete.includes(b.goalId))),
+                    };
+                });
             },
 
             syncGrowthSession: async (block) => {

@@ -144,8 +144,9 @@ export default function GoalSettingModal({ isOpen, onClose, goalToEdit }: Props)
                     </div>
 
                     <div className="pt-2">
-                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 text-sm text-text-muted text-center font-medium">
-                            목표를 생성하면 <strong className="text-primary">{title || '목표'}</strong> 진행률을 게이지로 확인할 수 있습니다.
+                        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6 text-sm text-text-muted text-center font-medium space-y-1">
+                            <div>- 목표를 생성하면 목표 진행률을 게이지로 확인할 수 있습니다.</div>
+                            <div>- 목표는 생성하면 주 중간에 삭제 불가능합니다.</div>
                         </div>
 
                         <button

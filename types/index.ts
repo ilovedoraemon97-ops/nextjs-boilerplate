@@ -30,6 +30,7 @@ export interface Goal {
     color: string;
     targetMinutesPerWeek: number; // e.g., 300 minutes (5 hours) per week
     createdAt: string;
+    pendingDeleteAt?: string | null; // YYYY-MM-DD (start of week to delete)
 }
 
 export interface UserStats {
