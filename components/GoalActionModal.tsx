@@ -23,11 +23,11 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [showHidden, setShowHidden] = useState(false);
 
-    if (!isOpen || !goal) return null;
-
     useEffect(() => {
-        if (openDetailOnOpen) setIsDetailOpen(true);
-    }, [openDetailOnOpen]);
+        if (openDetailOnOpen && isOpen && goal) setIsDetailOpen(true);
+    }, [openDetailOnOpen, isOpen, goal]);
+
+    if (!isOpen || !goal) return null;
 
     const handleDelete = () => {
         if (goal.pendingDeleteAt) {
