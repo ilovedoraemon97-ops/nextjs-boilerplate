@@ -151,7 +151,8 @@ export default function GoalsPage() {
 
             <button
                 onClick={handleAddClick}
-                className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
+                className="fixed bottom-24 right-4 left-auto w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
+                style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
                 aria-label="갓생 목표 추가"
             >
                 <Target className="w-6 h-6" strokeWidth={2.5} />
