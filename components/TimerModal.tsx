@@ -213,6 +213,15 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete, confirmO
                             <div className="flex space-x-3">
                                 <button
                                     onClick={() => {
+                                        setIsConfirmOpen(false);
+                                        finalizeSession();
+                                    }}
+                                    className="flex-1 bg-primary text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                                >
+                                    확인
+                                </button>
+                                <button
+                                    onClick={() => {
                                         if (confirm('갓생 기록이 사라져요.')) {
                                             setIsActive(false);
                                             setSeconds(0);
@@ -221,18 +230,9 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete, confirmO
                                             onClose();
                                         }
                                     }}
-                                    className="flex-1 bg-bg-surface-hover border border-border-strong text-text-muted rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                                    className="flex-1 bg-border-subtle text-text-muted rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
                                 >
                                     삭제
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setIsConfirmOpen(false);
-                                        finalizeSession();
-                                    }}
-                                    className="flex-1 bg-primary text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
-                                >
-                                    확인
                                 </button>
                             </div>
                         </div>
