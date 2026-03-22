@@ -70,7 +70,7 @@ export default function GoalsPage() {
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold flex items-center">
                         <Target className="w-5 h-5 mr-2 text-primary" />
-                        내 갓생 목표
+                        주간 갓생 목표
                     </h2>
                     <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded-md">
                         총 {goals.length}개
@@ -150,6 +150,7 @@ export default function GoalsPage() {
                 isOpen={isTimerOpen}
                 onClose={() => setIsTimerOpen(false)}
                 goal={activeGoal || undefined}
+                confirmOnComplete
                 onComplete={(payload) => {
                     if (payload?.becameComplete) {
                         setWeeklySummary(payload.summary);

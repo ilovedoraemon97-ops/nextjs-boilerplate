@@ -81,7 +81,7 @@ export default function Home() {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const block = blocks.find(b => b.id === active.id);
-    if (block) setActiveDragBlock(block);
+    if (block?.type === 'NORMAL') setActiveDragBlock(block);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -95,6 +95,7 @@ export default function Home() {
     // Find block
     const block = blocks.find(b => b.id === blockId);
     if (!block) return;
+    if (block.type === 'GROWTH') return;
 
     if (overId === 'unassigned') {
       // Move back to unassigned
@@ -163,29 +164,22 @@ export default function Home() {
 
       <button
         onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
-        className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40"
+        className="fixed bottom-24 right-4 left-auto sm:right-[calc(50%-13rem)] w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
         aria-label="일반 일정 추가"
       >
         <CalendarDays className="w-6 h-6" strokeWidth={2.5} />
+        <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-normal flex items-center justify-center shadow-sm">
+          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor" aria-hidden="true">
+            <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
+          </svg>
+        </span>
       </button>
 
       <BlockActionModal
         block={actionBlock}
         isOpen={!!actionBlock}
         onClose={() => setActionBlock(null)}
-        onOpenTimer={() => {
-          if (actionBlock?.type === 'GROWTH') {
-            setActiveBlock(actionBlock as GrowthBlock);
-            const growthBlock = actionBlock as GrowthBlock;
-            const goal = goals.find(g => g.id === growthBlock.goalId) || null;
-            if (!goal) {
-              alert('해당 목표 정보를 찾을 수 없습니다.');
-              return;
-            }
-            setTimerGoal(goal);
-            setIsTimerOpen(true);
-          }
-        }}
+        growthMode="deleteOnly"
         onUnassignGrowth={() => {
           if (actionBlock?.type === 'GROWTH') {
             useDoneDayStore.getState().updateBlockSchedule(actionBlock.id, null as any, '', actionBlock.durationMinutes);

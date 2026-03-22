@@ -11,15 +11,19 @@ interface Props {
     onEditGoal?: () => void; // for Growth
     onEditNormal?: () => void; // for Normal
     onUnassignGrowth?: () => void;
+    growthMode?: 'full' | 'deleteOnly';
 }
 
-export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, onEditGoal, onEditNormal, onUnassignGrowth }: Props) {
+export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, onEditGoal, onEditNormal, onUnassignGrowth, growthMode = 'full' }: Props) {
     const deleteBlock = useDoneDayStore(state => state.deleteBlock);
 
     if (!isOpen || !block) return null;
 
     const handleDelete = () => {
-        if (window.confirm(`'${block.title}' 일정을 삭제하시겠습니까?`)) {
+        const message = block.type === 'GROWTH'
+            ? '갓생 기록이 사라져요.'
+            : `'${block.title}' 일정을 삭제하시겠습니까?`;
+        if (window.confirm(message)) {
             deleteBlock(block.id);
             onClose();
         }
@@ -38,28 +42,39 @@ export default function BlockActionModal({ block, isOpen, onClose, onOpenTimer, 
                     <div className="space-y-3">
                         {block.type === 'GROWTH' ? (
                             <>
-                                <button
-                                    onClick={() => { onClose(); onOpenTimer?.(); }}
-                                    className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-4 font-bold transition-all flex items-center justify-center shadow-sm"
-                                >
-                                    <Play className="w-5 h-5 mr-2 fill-current" />
-                                    타이머 시작
-                                </button>
-                                <button
-                                    onClick={() => { onClose(); onEditGoal?.(); }}
-                                    className="w-full bg-bg-surface hover:bg-bg-surface-hover text-text-base rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-border-strong"
-                                >
-                                    <Edit3 className="w-5 h-5 mr-2" />
-                                    목표 수정
-                                </button>
-                                {block.date && (
-                                    <button
-                                        onClick={() => { onClose(); onUnassignGrowth?.(); }}
-                                        className="w-full bg-bg-surface-hover hover:bg-border-subtle text-text-muted rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-border-strong"
-                                    >
-                                        달력에서 빼기 (대기 상태로)
-                                    </button>
+                                {growthMode === 'full' && (
+                                    <>
+                                        <button
+                                            onClick={() => { onClose(); onOpenTimer?.(); }}
+                                            className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-4 font-bold transition-all flex items-center justify-center shadow-sm"
+                                        >
+                                            <Play className="w-5 h-5 mr-2 fill-current" />
+                                            타이머 시작
+                                        </button>
+                                        <button
+                                            onClick={() => { onClose(); onEditGoal?.(); }}
+                                            className="w-full bg-bg-surface hover:bg-bg-surface-hover text-text-base rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-border-strong"
+                                        >
+                                            <Edit3 className="w-5 h-5 mr-2" />
+                                            목표 수정
+                                        </button>
+                                        {block.date && (
+                                            <button
+                                                onClick={() => { onClose(); onUnassignGrowth?.(); }}
+                                                className="w-full bg-bg-surface-hover hover:bg-border-subtle text-text-muted rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-border-strong"
+                                            >
+                                                달력에서 빼기 (대기 상태로)
+                                            </button>
+                                        )}
+                                    </>
                                 )}
+                                <button
+                                    onClick={handleDelete}
+                                    className="w-full bg-failed-bg hover:opacity-80 text-failed-hover rounded-xl py-4 font-bold transition-all flex items-center justify-center border border-failed-hover/20"
+                                >
+                                    <Trash2 className="w-5 h-5 mr-2" />
+                                    기록 삭제
+                                </button>
                             </>
                         ) : (
                             <>

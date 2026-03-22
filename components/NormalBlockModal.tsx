@@ -31,6 +31,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
     // 0 = Monday, 1 = Tuesday ... 6 = Sunday
     const [selectedDays, setSelectedDays] = useState<number[]>([]);
     const [repeatWeeks, setRepeatWeeks] = useState<number>(1);
+    const MAX_REPEAT_WEEKS = 52;
 
     useEffect(() => {
         if (!isOpen) return;
@@ -95,7 +96,8 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
             });
         } else if (targetDate) {
             const startOfScopeWeek = startOfWeek(parseISO(targetDate), { weekStartsOn: 1 });
-            for (let w = 0; w < repeatWeeks; w++) {
+            const weeksToCreate = repeatWeeks === 0 ? MAX_REPEAT_WEEKS : repeatWeeks;
+            for (let w = 0; w < weeksToCreate; w++) {
                 const currentWeekStart = addDays(startOfScopeWeek, w * 7);
                 selectedDays.forEach(dayIdx => {
                     const blockDate = format(addDays(currentWeekStart, dayIdx), 'yyyy-MM-dd');
@@ -187,8 +189,7 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
                             <div className="flex space-x-2">
                                 {[
                                     { label: '이번 주만', value: 1 },
-                                    { label: '4주 반복', value: 4 },
-                                    { label: '12주 (약 3달)', value: 12 }
+                                    { label: '1년 반복', value: 0 }
                                 ].map((opt) => (
                                     <button
                                         key={opt.value}
@@ -246,7 +247,9 @@ export default function NormalBlockModal({ isOpen, onClose, targetDate, blockToE
                             disabled={!blockToEdit && selectedDays.length === 0}
                             className="w-full bg-normal disabled:bg-border-strong disabled:text-text-muted hover:bg-normal-hover text-white rounded-xl py-3 text-sm font-bold transition-all active:scale-[0.98]"
                         >
-                            {blockToEdit ? '일정 수정 저장' : `${repeatWeeks > 1 ? `${repeatWeeks}주간 ` : ''}${selectedDays.length}일치 일정 저장`}
+                            {blockToEdit
+                                ? '일정 수정 저장'
+                                : `${repeatWeeks === 0 ? '1년 반복 ' : repeatWeeks > 1 ? `${repeatWeeks}주간 ` : ''}${selectedDays.length}일치 일정 저장`}
                         </button>
                     </div>
                 </form>

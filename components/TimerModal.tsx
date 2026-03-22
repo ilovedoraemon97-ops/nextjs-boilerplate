@@ -12,19 +12,22 @@ interface Props {
     isOpen: boolean;
     onClose: () => void;
     onComplete?: (payload: { summary: WeeklyGoalSummary; becameComplete: boolean }) => void;
+    confirmOnComplete?: boolean;
 }
 
-export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props) {
+export default function TimerModal({ goal, isOpen, onClose, onComplete, confirmOnComplete = false }: Props) {
     const addGrowthBlock = useDoneDayStore(state => state.addGrowthBlock);
     const [seconds, setSeconds] = useState(0);
     const [isActive, setIsActive] = useState(false);
     const [startTimeRef, setStartTimeRef] = useState<Date | null>(null);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
     useEffect(() => {
         if (isOpen && goal) {
             setSeconds(0);
             setIsActive(false);
             setStartTimeRef(null);
+            setIsConfirmOpen(false);
         } else {
             setIsActive(false);
         }
@@ -52,14 +55,19 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props)
     const totalMinutes = Math.floor(seconds / 60);
     const canComplete = totalMinutes >= 1; // Require at least 1 minute
 
-    const handleComplete = () => {
-        if (!canComplete || !startTimeRef) return;
-
-        setIsActive(false);
-
+    const buildSession = () => {
+        if (!startTimeRef) return null;
         const dateStr = format(startTimeRef, 'yyyy-MM-dd');
         const startStr = format(startTimeRef, 'HH:mm');
         const endStr = format(addMinutes(startTimeRef, totalMinutes), 'HH:mm');
+        return { dateStr, startStr, endStr };
+    };
+
+    const finalizeSession = () => {
+        if (!canComplete || !startTimeRef) return;
+        setIsActive(false);
+        const session = buildSession();
+        if (!session) return;
 
         const before = getWeeklyGoalSummary(
             useDoneDayStore.getState().goals,
@@ -71,9 +79,9 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props)
             goalId: goal.id,
             title: goal.title,
             color: goal.color,
-            date: dateStr,
-            startTime: startStr,
-            endTime: endStr,
+            date: session.dateStr,
+            startTime: session.startStr,
+            endTime: session.endStr,
             durationMinutes: totalMinutes,
         });
 
@@ -87,6 +95,15 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props)
 
         onClose();
         onComplete?.({ summary: after, becameComplete });
+    };
+
+    const handleComplete = () => {
+        if (!canComplete || !startTimeRef) return;
+        if (confirmOnComplete) {
+            setIsConfirmOpen(true);
+            return;
+        }
+        finalizeSession();
     };
 
     const handleClose = () => {
@@ -180,6 +197,48 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete }: Props)
 
                 </div>
             </div>
+
+            {isConfirmOpen && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-bg-surface w-full max-w-sm rounded-2xl shadow-lg border border-border-strong overflow-hidden animate-pop relative">
+                        <div className="p-6">
+                            <h3 className="text-lg font-bold text-text-base mb-2">갓생 집중 시간</h3>
+                            <p className="text-sm font-semibold text-text-muted mb-4">
+                                시작시간: {buildSession()?.startStr} / 종료 시간: {buildSession()?.endStr}
+                            </p>
+                            <div className="bg-bg-base border border-border-subtle rounded-xl p-4 text-sm text-text-muted font-medium mb-6 text-center">
+                                갓생 블록이 일정표에 자동 생성됩니다
+                            </div>
+
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={() => {
+                                        if (confirm('갓생 기록이 사라져요.')) {
+                                            setIsActive(false);
+                                            setSeconds(0);
+                                            setStartTimeRef(null);
+                                            setIsConfirmOpen(false);
+                                            onClose();
+                                        }
+                                    }}
+                                    className="flex-1 bg-bg-surface-hover border border-border-strong text-text-muted rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                                >
+                                    삭제
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsConfirmOpen(false);
+                                        finalizeSession();
+                                    }}
+                                    className="flex-1 bg-primary text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                                >
+                                    확인
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

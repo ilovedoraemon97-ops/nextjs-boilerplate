@@ -40,9 +40,11 @@ interface DraggableBlockProps {
 }
 
 function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalActiveMins, onClick }: DraggableBlockProps) {
+    const isGrowth = block.type === 'GROWTH';
     const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
         id: block.id,
         data: block,
+        disabled: isGrowth,
     });
 
     const topPercent = getTopPercent(block.startTime, activeStartHour, activeEndHour, totalActiveMins);
@@ -58,7 +60,6 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
         zIndex: isDragging ? 999 : 10,
     };
 
-    const isGrowth = block.type === 'GROWTH';
     const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
 
     return (
@@ -69,7 +70,8 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
             {...attributes}
             onClick={() => onClick?.(block)}
             className={clsx(
-                "absolute left-[1px] right-[1px] p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col cursor-grab active:cursor-grabbing border-l-[1.5px] sm:border-l-2 transition-all overflow-hidden hover:z-50 shadow-sm outline outline-1 outline-bg-base",
+                "absolute left-[1px] right-[1px] p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 transition-all overflow-hidden hover:z-50 shadow-sm outline outline-1 outline-bg-base",
+                isGrowth ? "cursor-default" : "cursor-grab active:cursor-grabbing",
                 isGrowth
                     ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
                     : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
