@@ -27,8 +27,6 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
         if (openDetailOnOpen && isOpen && goal) setIsDetailOpen(true);
     }, [openDetailOnOpen, isOpen, goal]);
 
-    if (!isOpen || !goal) return null;
-
     const handleDelete = () => {
         if (goal.pendingDeleteAt) {
             updateGoal(goal.id, { pendingDeleteAt: null });
@@ -67,6 +65,8 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
             setShowHidden(true);
         }
     }, [isDetailOpen, hiddenList.length]);
+
+    if (!isOpen || !goal) return null;
 
     return (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fade-in" onClick={onClose}>
