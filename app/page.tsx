@@ -7,7 +7,6 @@ import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
 import AuthPanel from '@/components/AuthPanel';
 import WeeklyCalendar from '@/components/WeeklyCalendar';
-import UnassignedBlocks from '@/components/UnassignedBlocks';
 import TimerModal from '@/components/TimerModal';
 import AchievementCard from '@/components/AchievementCard';
 import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
@@ -15,7 +14,7 @@ import NormalBlockModal from '@/components/NormalBlockModal';
 import Onboarding from '@/components/Onboarding';
 import BlockActionModal from '@/components/BlockActionModal';
 import GoalSettingModal from '@/components/GoalSettingModal';
-import { X } from 'lucide-react';
+import { X, CalendarDays } from 'lucide-react';
 import { TimeBlock, GrowthBlock, NormalBlock, Goal } from '@/types';
 import { WeeklyGoalSummary } from '@/lib/goalProgress';
 import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
@@ -130,16 +129,7 @@ export default function Home() {
     <div className="flex flex-col min-h-full pb-24">
       <Header />
 
-      <div className="flex-1 p-4 flex flex-col min-h-0 space-y-4">
-        {/* Top Buttons */}
-        <div className="flex items-center space-x-3 shrink-0">
-          <button onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }} className="flex-1 bg-normal font-bold hover:bg-normal-hover text-white py-3 sm:py-4 rounded-xl shadow-sm text-sm transition-transform active:scale-95">
-            일반 일정 추가
-          </button>
-          <button onClick={() => { setGoalToEdit(null); setIsGoalModalOpen(true); }} className="flex-1 bg-primary font-bold hover:bg-primary-hover text-white py-3 sm:py-4 rounded-xl shadow-sm text-sm transition-transform active:scale-95">
-            갓생 목표 추가
-          </button>
-        </div>
+      <div className="flex-1 p-4 flex flex-col min-h-0 space-y-2">
 
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex-1 flex flex-col min-h-[60vh] sm:min-h-[65vh] w-full mb-2 sm:mb-4">
@@ -147,9 +137,6 @@ export default function Home() {
               onBlockClick={handleBlockClick}
               onAddNormalBlock={handleAddNormalBlockClick}
             />
-          </div>
-          <div className="shrink-0 bg-bg-surface border-t border-border-strong pt-3 sm:pt-4 -mx-4 px-4 shadow-sm pb-1 sm:pb-4 min-h-[110px] sm:min-h-[130px]">
-            <UnassignedBlocks onBlockClick={handleBlockClick} />
           </div>
           <DragOverlay>
             {activeDragBlock ? (
@@ -173,6 +160,14 @@ export default function Home() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      <button
+        onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
+        className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40"
+        aria-label="일반 일정 추가"
+      >
+        <CalendarDays className="w-6 h-6" strokeWidth={2.5} />
+      </button>
 
       <BlockActionModal
         block={actionBlock}
