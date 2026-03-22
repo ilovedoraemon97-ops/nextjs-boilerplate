@@ -45,7 +45,7 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     const topPercent = getTopPercent(block.startTime, activeStartHour, activeEndHour, totalActiveMins);
     if (topPercent === null) return null; // hide if outside window
 
-    const heightPercent = (Math.max(block.durationMinutes, 15) / totalActiveMins) * 100;
+    const heightPercent = (Math.max(block.durationMinutes, 3) / totalActiveMins) * 100;
 
     const style = {
         top: `${topPercent}%`,
@@ -305,6 +305,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     const isToday = isSameDay(d, new Date());
                                     const dWeekStart = startOfWeekDf(d, { weekStartsOn: 1 });
                                     const isActiveWeek = isSameDay(dWeekStart, startDate);
+                                    const isCurrentWeek = isSameDay(dWeekStart, currentWeekStart);
                                     return (
                                         <button
                                             key={d.toISOString()}
@@ -316,6 +317,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                                 "h-8 rounded-md text-[11px] font-semibold transition-colors",
                                                 inMonth ? "text-text-base" : "text-text-muted/50",
                                                 isActiveWeek ? "bg-primary/10 ring-1 ring-primary/30" : "hover:bg-bg-surface-hover",
+                                                isCurrentWeek && !isActiveWeek && "bg-primary/5",
                                                 isToday && "outline outline-1 outline-primary/40"
                                             )}
                                         >
@@ -324,6 +326,14 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                     );
                                 })}
                             </div>
+                        </div>
+                        <div className="p-4 pt-0">
+                            <button
+                                onClick={() => setIsMonthOpen(false)}
+                                className="w-full bg-bg-surface-hover border border-border-strong text-text-base rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
+                            >
+                                닫기
+                            </button>
                         </div>
                     </div>
                 </div>
