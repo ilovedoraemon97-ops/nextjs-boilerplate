@@ -18,6 +18,7 @@ import GoalSettingModal from '@/components/GoalSettingModal';
 import { X, CalendarDays } from 'lucide-react';
 import { TimeBlock, GrowthBlock, NormalBlock, Goal } from '@/types';
 import { WeeklyGoalSummary } from '@/lib/goalProgress';
+import { getWeeklyGoalSummary } from '@/lib/goalProgress';
 import { supabaseClient, isSupabaseConfigured } from '@/lib/supabaseClient';
 
 export default function Home() {
@@ -112,6 +113,8 @@ export default function Home() {
 
   if (!isMounted) return null;
 
+  const weeklySummarySnapshot = getWeeklyGoalSummary(goals, blocks);
+
   return (
     <div className="flex flex-col min-h-full pb-24">
       <Header />
@@ -124,6 +127,38 @@ export default function Home() {
             onAddNormalBlock={handleAddNormalBlockClick}
           />
         </div>
+
+        {goals.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {goals.map((goal) => {
+              const doneMins = weeklySummarySnapshot.progressByGoalId[goal.id] || 0;
+              const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
+              return (
+                <button
+                  key={goal.id}
+                  onClick={() => {
+                    // Jump to goals detail via existing action flow
+                    router.push(`/goals?goalId=${goal.id}&detail=1`);
+                  }}
+                  className={`relative w-full overflow-hidden rounded-2xl border border-border-strong px-4 py-3 text-left ${goal.color} opacity-70`}
+                >
+                  <div
+                    className={`absolute inset-x-0 top-0 ${goal.color} opacity-100`}
+                    style={{ height: `${percent}%` }}
+                  >
+                    <div className="h-full flex items-center justify-end pr-3">
+                      <span className="text-xs font-bold text-white">{percent}%</span>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 flex items-center justify-between">
+                    <div className="font-bold text-white/95">{goal.title}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {fabHost && createPortal(
