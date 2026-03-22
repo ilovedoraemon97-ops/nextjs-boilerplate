@@ -197,7 +197,14 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
 
     const startDate = weekStart; // Monday
     const weekDates = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
-    const rangeLabel = `${format(startDate, 'M.d')} - ${format(weekDates[6], 'M.d')}`;
+    const endDate = weekDates[6];
+    const startYear = Number(format(startDate, 'yy'));
+    const endYear = Number(format(endDate, 'yy'));
+    const startLabel = format(startDate, 'MM.dd');
+    const endLabel = format(endDate, 'MM.dd');
+    const rangeLabel = startYear === endYear
+        ? `${format(startDate, 'yy')}.${startLabel}-${endLabel}`
+        : `${format(startDate, 'yy')}.${startLabel}-${format(endDate, 'yy')}.${endLabel}`;
     const currentWeekStart = startOfWeek(new Date(), { weekStartsOn: 1 });
     const monthStart = startOfMonth(monthCursor);
     const monthEnd = endOfMonth(monthCursor);
@@ -384,8 +391,8 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
                                             className={clsx(
                                                 "h-8 rounded-md text-[11px] font-semibold transition-colors",
                                                 inMonth ? "text-text-base" : "text-text-muted/50",
-                                                isActiveWeek ? "bg-primary/20 ring-2 ring-primary/60" : "hover:bg-bg-surface-hover",
-                                                isCurrentWeek && !isActiveWeek && "bg-primary/10",
+                                                isActiveWeek ? "bg-primary/25 ring-2 ring-primary/70" : "hover:bg-bg-surface-hover",
+                                                isCurrentWeek && !isActiveWeek && "bg-primary/15 ring-1 ring-primary/40",
                                                 isToday && "outline outline-1 outline-primary/40"
                                             )}
                                         >
