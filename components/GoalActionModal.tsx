@@ -62,13 +62,15 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                         진척 세부내역
                     </button>
 
-                    <button
-                        onClick={() => { onClose(); onStartTimer(); }}
-                        className="w-full flex items-center justify-center bg-primary hover:bg-primary-hover text-white rounded-xl py-3.5 text-sm font-bold transition-all"
-                    >
-                        <Play className="w-4 h-4 mr-2 fill-white" />
-                        타이머 시작
-                    </button>
+                    <div className="bg-bg-base border border-border-subtle rounded-xl p-2">
+                        <button
+                            onClick={() => { onClose(); onStartTimer(); }}
+                            className="w-full flex items-center justify-center bg-primary hover:bg-primary-hover text-white rounded-lg py-3 text-sm font-bold transition-all"
+                        >
+                            <Play className="w-4 h-4 mr-2 fill-white" />
+                            타이머 시작
+                        </button>
+                    </div>
 
                     <button
                         onClick={() => { onClose(); onEditGoal(); }}
@@ -103,9 +105,13 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                             ) : (
                                 Object.entries(grouped).map(([dateStr, items]) => {
                                     const dateLabel = dateStr ? format(parseISO(dateStr), 'M/d(EEE)', { locale: ko }) : '';
+                                    const totalMinutes = items.reduce((sum, b) => sum + b.durationMinutes, 0);
                                     return (
                                         <div key={dateStr} className="bg-bg-base border border-border-subtle rounded-xl px-3 py-2">
-                                            <div className="text-xs font-bold text-text-muted mb-2">{dateLabel}</div>
+                                            <div className="flex items-center justify-between text-xs font-bold text-text-muted mb-2">
+                                                <span>{dateLabel}</span>
+                                                <span>합계 {totalMinutes}분</span>
+                                            </div>
                                             <div className="space-y-1.5">
                                                 {items.map((b) => {
                                                     const timeLabel = b.startTime && b.endTime ? `${b.startTime} ~ ${b.endTime}` : '';
