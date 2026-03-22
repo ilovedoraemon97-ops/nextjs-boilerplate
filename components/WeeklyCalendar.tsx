@@ -77,10 +77,12 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
                     : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
             )}
         >
-            <div className="flex items-start sm:items-center justify-between">
-                <span className="font-semibold truncate tracking-tight">{block.title}</span>
-            </div>
-            {block.durationMinutes >= 60 && (
+            {block.type !== 'GROWTH' && (
+                <div className="flex items-start sm:items-center justify-between">
+                    <span className="font-semibold truncate tracking-tight">{block.title}</span>
+                </div>
+            )}
+            {block.type !== 'GROWTH' && block.durationMinutes >= 60 && (
                 <div className="flex items-center mt-[-1px] sm:mt-[1px] text-[6.5px] sm:text-[8px] opacity-70 font-medium tracking-tight">
                     <Clock className="w-[8px] h-[8px] sm:w-[10px] sm:h-[10px] mr-[1px] sm:mr-0.5" />
                     {block.startTime}

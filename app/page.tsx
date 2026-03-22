@@ -133,7 +133,7 @@ export default function Home() {
       <div className="flex-1 p-4 flex flex-col min-h-0 space-y-2">
 
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <div className="flex-1 flex flex-col min-h-[60vh] sm:min-h-[65vh] w-full mb-2 sm:mb-4">
+          <div className="flex-1 flex flex-col min-h-0 w-full">
             <WeeklyCalendar
               onBlockClick={handleBlockClick}
               onAddNormalBlock={handleAddNormalBlockClick}
@@ -164,7 +164,8 @@ export default function Home() {
 
       <button
         onClick={() => { setSelectedDateForNormal(format(new Date(), 'yyyy-MM-dd')); setIsNormalModalOpen(true); }}
-        className="fixed bottom-24 right-4 left-auto sm:right-[calc(50%-13rem)] w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
+        className="fixed bottom-24 !right-4 !left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
+        style={{ right: 'calc(1rem + env(safe-area-inset-right))', left: 'auto' }}
         aria-label="일반 일정 추가"
       >
         <CalendarDays className="w-6 h-6" strokeWidth={2.5} />
