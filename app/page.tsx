@@ -128,21 +128,20 @@ export default function Home() {
           />
 
           {goals.length > 0 && (
-            <div className="absolute left-2 right-2 bottom-2 flex gap-2 overflow-x-auto rounded-xl bg-bg-surface/70 border border-border-subtle px-2 py-2 backdrop-blur-sm">
+            <div className="absolute left-2 right-2 bottom-2 flex gap-2 overflow-x-auto rounded-xl bg-bg-surface/70 border border-border-subtle px-2 py-2 backdrop-blur-sm pointer-events-auto">
               {goals.map((goal) => {
                 const doneMins = weeklySummarySnapshot.progressByGoalId[goal.id] || 0;
                 const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
                 return (
                   <div
                     key={goal.id}
-                    className="relative shrink-0 px-2 py-1 rounded-lg border border-border-subtle bg-bg-base/70"
+                    className={`relative shrink-0 px-2 py-1 rounded-lg border border-border-subtle ${goal.color} bg-opacity-20`}
                   >
                     <div
-                      className={`absolute inset-0 rounded-lg ${goal.color} opacity-70`}
+                      className={`absolute inset-x-0 bottom-0 rounded-lg ${goal.color} opacity-100`}
                       style={{ height: `${percent}%` }}
                     />
                     <div className="relative z-10 flex items-center gap-1.5 text-[10px] font-semibold text-text-base">
-                      <span className={`w-2 h-2 rounded-full ${goal.color}`} />
                       <span className="max-w-[70px] truncate">{goal.title}</span>
                       <span className="text-text-muted">{percent}%</span>
                     </div>

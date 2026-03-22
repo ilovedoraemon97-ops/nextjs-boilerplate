@@ -246,7 +246,7 @@ export default function WeeklyCalendar({ onBlockClick, onAddNormalBlock }: Weekl
             </div>
 
             {/* Container for the whole grid - Fits parent exactly */}
-            <div className="flex-1 relative flex flex-col min-h-0 bg-bg-base overflow-hidden">
+            <div className="flex-1 relative flex flex-col min-h-0 bg-bg-base overflow-hidden pb-12">
                 <div className="flex w-full h-full absolute inset-0">
                     {/* Time Axis */}
                     <div className="w-[18px] sm:w-[24px] flex-shrink-0 bg-bg-surface border-r border-border-subtle flex flex-col relative z-20">
