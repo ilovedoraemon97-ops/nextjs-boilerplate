@@ -144,7 +144,7 @@ export default function Home() {
                     className={`absolute inset-x-0 bottom-0 ${goal.color} opacity-100`}
                     style={{ height: `${percent}%` }}
                   />
-                  <div className="relative z-10 flex items-center gap-1.5 text-[10px] font-semibold text-text-base">
+                  <div className="relative z-10 flex flex-col text-[10px] font-semibold text-text-base leading-tight">
                     <span className="max-w-[70px] truncate">{goal.title}</span>
                     <span className="text-text-muted">{percent}%</span>
                   </div>
