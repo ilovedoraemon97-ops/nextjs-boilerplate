@@ -151,9 +151,13 @@ export default function GoalsPage() {
 
             <button
                 onClick={handleAddClick}
-                className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-40"
+                className="fixed bottom-24 right-4 sm:right-[calc(50%-13rem)] w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-40 relative"
+                aria-label="갓생 목표 추가"
             >
-                <Plus className="w-6 h-6" strokeWidth={3} />
+                <Target className="w-6 h-6" strokeWidth={2.5} />
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-primary flex items-center justify-center shadow-sm">
+                    <Plus className="w-3.5 h-3.5" strokeWidth={3} />
+                </span>
             </button>
 
             <GoalSettingModal
