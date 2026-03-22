@@ -28,6 +28,7 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
     }, [openDetailOnOpen, isOpen, goal]);
 
     const handleDelete = () => {
+        if (!goal) return;
         if (goal.pendingDeleteAt) {
             updateGoal(goal.id, { pendingDeleteAt: null });
             onClose();
