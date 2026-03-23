@@ -40,31 +40,50 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
 
     const handleSignIn = async () => {
         if (!supabaseClient) return;
+        if (!email.trim() || !password) {
+            setError('이메일과 비밀번호를 입력해주세요.');
+            return;
+        }
         setLoading(true);
         setError(null);
         setNotice(null);
-        const { error } = await supabaseClient.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) setError(error.message);
-        setLoading(false);
+        try {
+            const { error } = await supabaseClient.auth.signInWithPassword({ email: email.trim(), password });
+            if (error) setError(error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSignUp = async () => {
         if (!supabaseClient) return;
+        if (!email.trim() || !password) {
+            setError('이메일과 비밀번호를 입력해주세요.');
+            return;
+        }
         setLoading(true);
         setError(null);
         setNotice(null);
-        const { data, error } = await supabaseClient.auth.signUp({
-            email: email.trim(),
-            password,
-            options: {
-                emailRedirectTo: `${window.location.origin}/auth/callback`,
-            },
-        });
-        if (error) setError(error.message);
-        if (!error && !data.session) {
-            setNotice('회원가입 요청이 완료되었습니다. 이메일 인증 후 로그인해 주세요.');
+        try {
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email.trim(),
+                password,
+                options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                },
+            });
+            if (error) {
+                setError(error.message);
+            } else {
+                if (data.session) {
+                    setNotice('회원가입이 완료되었습니다. 로그인되었습니다.');
+                } else {
+                    setNotice('회원가입 요청이 완료되었습니다. 이메일 인증 후 로그인해 주세요.');
+                }
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleKakaoSignIn = async () => {
