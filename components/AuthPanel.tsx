@@ -74,7 +74,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setNotice(null);
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'kakao',
-            options: { redirectTo: `${window.location.origin}/auth/callback` },
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+                scopes: 'profile_nickname profile_image',
+            },
         });
         if (error) setError(error.message);
         setLoading(false);
