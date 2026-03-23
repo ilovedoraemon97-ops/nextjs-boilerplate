@@ -129,7 +129,7 @@ export default function Home() {
         </div>
 
         {goals.length > 0 && (
-          <div className="mt-2 flex gap-2 overflow-x-auto rounded-xl bg-bg-surface/70 border border-border-subtle px-2 py-2 backdrop-blur-sm">
+          <div className="mt-2 flex flex-wrap justify-center gap-2 overflow-x-auto rounded-xl bg-bg-surface/70 border border-border-subtle px-2 py-2 backdrop-blur-sm">
             {goals.map((goal) => {
               const doneMins = weeklySummarySnapshot.progressByGoalId[goal.id] || 0;
               const percent = Math.min(100, Math.round((doneMins / goal.targetMinutesPerWeek) * 100) || 0);
