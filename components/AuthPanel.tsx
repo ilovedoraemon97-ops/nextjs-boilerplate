@@ -14,6 +14,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
+    const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
     useEffect(() => {
         if (!isSupabaseConfigured || !supabaseClient) return;
@@ -150,7 +151,11 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                             로그인
                         </button>
                         <button
-                            onClick={handleSignUp}
+                            onClick={() => {
+                                setError(null);
+                                setNotice(null);
+                                setIsSignUpOpen(true);
+                            }}
                             disabled={loading}
                             className="flex-1 text-sm font-bold px-4 py-2 rounded-lg border border-border-strong bg-bg-surface-hover disabled:opacity-60"
                         >
@@ -166,6 +171,43 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                         카카오로 계속하기
                     </button>
                 </>
+            )}
+
+            {isSignUpOpen && (
+                <div className="fixed inset-0 z-[220] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4 relative">
+                        <button
+                            onClick={() => setIsSignUpOpen(false)}
+                            className="absolute top-3 right-3 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
+                        >
+                            ✕
+                        </button>
+                        <div className="text-sm font-bold text-text-base mb-3">회원가입</div>
+                        <input
+                            type="email"
+                            placeholder="email@example.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
+                        />
+                        <input
+                            type="password"
+                            placeholder="비밀번호"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
+                        />
+                        {error && <div className="text-xs text-red-500 font-semibold mb-2">{error}</div>}
+                        {notice && <div className="text-xs text-text-muted font-semibold mb-2">{notice}</div>}
+                        <button
+                            onClick={handleSignUp}
+                            disabled={loading}
+                            className="w-full text-sm font-bold px-4 py-2 rounded-lg bg-primary text-white disabled:opacity-60"
+                        >
+                            회원가입 하기
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

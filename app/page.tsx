@@ -288,19 +288,6 @@ export default function Home() {
       <Onboarding onComplete={() => {
         if (!isLoggedIn) setIsAuthOpen(true);
       }} />
-      {isAuthOpen && (
-        <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4 relative">
-            <button
-              onClick={() => setIsAuthOpen(false)}
-              className="absolute top-3 right-3 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <AuthPanel onSignedIn={loadProgressFromServer} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
