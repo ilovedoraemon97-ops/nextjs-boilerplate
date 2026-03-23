@@ -171,12 +171,12 @@ function GoalsPageInner() {
             {fabHost && createPortal(
                 <button
                     onClick={handleAddClick}
-                    className="fixed bottom-24 left-auto w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 hover:bg-primary-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
+                    className="fixed bottom-24 left-auto w-14 h-14 bg-normal text-white rounded-full flex items-center justify-center shadow-lg shadow-normal/30 hover:bg-normal-hover hover:scale-105 active:scale-95 transition-all z-[90] pointer-events-auto"
                     style={{ right: `calc(${fabRight} + env(safe-area-inset-right))`, left: 'auto' }}
                     aria-label="갓생 목표 추가"
                 >
                     <Target className="w-6 h-6" strokeWidth={2.5} />
-                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-primary flex items-center justify-center shadow-sm">
+                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white text-normal flex items-center justify-center shadow-sm">
                         <Plus className="w-3.5 h-3.5" strokeWidth={3} />
                     </span>
                 </button>,
