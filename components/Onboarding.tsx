@@ -50,10 +50,10 @@ export default function Onboarding({ onComplete }: Props) {
                         <Target className="w-8 h-8" />
                     </div>
                     <h1 className="text-2xl font-black text-text-base mb-3 leading-tight">
-                        계속하려면 로그인해 주세요
+                        로그인하면 기록을 이어서 볼 수 있어요
                     </h1>
                     <p className="text-text-muted font-medium">
-                        기존 목표가 있어요. 로그인하면 이어서 사용할 수 있어요.
+                        로그인 없이도 이용할 수 있어요. 필요할 때 로그인해 주세요.
                     </p>
                 </div>
 
@@ -65,7 +65,7 @@ export default function Onboarding({ onComplete }: Props) {
                         }}
                         className="w-full bg-primary hover:bg-primary-hover text-white rounded-xl py-4 font-bold text-lg transition-all active:scale-[0.98] flex items-center justify-center group"
                     >
-                        로그인으로 이동
+                        비회원으로 계속하기
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>

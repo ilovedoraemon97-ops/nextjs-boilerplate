@@ -84,3 +84,38 @@ grant usage on schema public to authenticated;
 grant insert on table public.growth_sessions to authenticated;
 grant insert on table public.growth_events to authenticated;
 grant insert, select, update on table public.growth_progress to authenticated;
+
+-- User profiles (username / recovery email)
+create table if not exists public.user_profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  username text unique not null,
+  recovery_email text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_profiles enable row level security;
+
+drop policy if exists "auth_select_user_profiles" on public.user_profiles;
+drop policy if exists "auth_insert_user_profiles" on public.user_profiles;
+drop policy if exists "auth_update_user_profiles" on public.user_profiles;
+
+create policy "auth_select_user_profiles"
+on public.user_profiles
+for select
+to authenticated
+using (id = auth.uid());
+
+create policy "auth_insert_user_profiles"
+on public.user_profiles
+for insert
+to authenticated
+with check (id = auth.uid());
+
+create policy "auth_update_user_profiles"
+on public.user_profiles
+for update
+to authenticated
+using (id = auth.uid())
+with check (id = auth.uid());
+
+grant select, insert, update on table public.user_profiles to authenticated;

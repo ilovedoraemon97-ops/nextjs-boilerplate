@@ -8,9 +8,10 @@ interface Props {
 }
 
 export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [userEmail, setUserEmail] = useState<string | null>(null);
+    const [recoveryEmail, setRecoveryEmail] = useState('');
+    const [userLabel, setUserLabel] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
@@ -19,10 +20,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
     useEffect(() => {
         if (!isSupabaseConfigured || !supabaseClient) return;
         supabaseClient.auth.getUser().then(({ data }) => {
-            setUserEmail(data.user?.email ?? null);
+            setUserLabel(data.user?.user_metadata?.username ?? data.user?.email ?? null);
         });
         const { data: subscription } = supabaseClient.auth.onAuthStateChange((event, session) => {
-            setUserEmail(session?.user?.email ?? null);
+            setUserLabel(session?.user?.user_metadata?.username ?? session?.user?.email ?? null);
             if (event === 'SIGNED_IN') onSignedIn?.();
             if (event === 'SIGNED_OUT') onSignedOut?.();
         });
@@ -39,17 +40,29 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         );
     }
 
+    const normalizeUsername = (value: string) => value.trim().toLowerCase();
+    const isValidUsername = (value: string) => /^[a-z0-9_]{3,20}$/.test(value);
+    const usernameToEmail = (value: string) => `${value}@doneday.local`;
+
     const handleSignIn = async () => {
         if (!supabaseClient) return;
-        if (!email.trim() || !password) {
-            setError('이메일과 비밀번호를 입력해주세요.');
+        const normalized = normalizeUsername(username);
+        if (!normalized || !password) {
+            setError('아이디와 비밀번호를 입력해주세요.');
+            return;
+        }
+        if (!isValidUsername(normalized)) {
+            setError('아이디는 영문 소문자, 숫자, _ 만 가능합니다 (3~20자).');
             return;
         }
         setLoading(true);
         setError(null);
         setNotice(null);
         try {
-            const { error } = await supabaseClient.auth.signInWithPassword({ email: email.trim(), password });
+            const { error } = await supabaseClient.auth.signInWithPassword({
+                email: usernameToEmail(normalized),
+                password,
+            });
             if (error) setError(error.message);
         } finally {
             setLoading(false);
@@ -58,8 +71,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
 
     const handleSignUp = async () => {
         if (!supabaseClient) return;
-        if (!email.trim() || !password) {
-            setError('이메일과 비밀번호를 입력해주세요.');
+        const normalized = normalizeUsername(username);
+        if (!normalized || !password) {
+            setError('아이디와 비밀번호를 입력해주세요.');
+            return;
+        }
+        if (!isValidUsername(normalized)) {
+            setError('아이디는 영문 소문자, 숫자, _ 만 가능합니다 (3~20자).');
             return;
         }
         setLoading(true);
@@ -67,10 +85,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setNotice(null);
         try {
             const { data, error } = await supabaseClient.auth.signUp({
-                email: email.trim(),
+                email: usernameToEmail(normalized),
                 password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    data: {
+                        username: normalized,
+                        recovery_email: recoveryEmail.trim() || null,
+                    },
                 },
             });
             if (error) {
@@ -78,8 +99,18 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             } else {
                 if (data.session) {
                     setNotice('회원가입이 완료되었습니다. 로그인되었습니다.');
+                    if (data.user) {
+                        const { error: profileError } = await supabaseClient.from('user_profiles').upsert({
+                            id: data.user.id,
+                            username: normalized,
+                            recovery_email: recoveryEmail.trim() || null,
+                        });
+                        if (profileError) {
+                            console.warn('[auth] failed to upsert user_profiles', profileError);
+                        }
+                    }
                 } else {
-                    setNotice('회원가입 요청이 완료되었습니다. 이메일 인증 후 로그인해 주세요.');
+                    setNotice('회원가입이 완료되었습니다. 로그인해 주세요.');
                 }
             }
         } finally {
@@ -112,9 +143,9 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         <div className="bg-bg-surface border border-border-subtle rounded-2xl p-4 flex flex-col gap-3">
             <div className="text-sm font-semibold text-text-base">로그인</div>
 
-            {userEmail ? (
+            {userLabel ? (
                 <div className="flex items-center justify-between">
-                    <div className="text-sm text-text-muted">현재 로그인: {userEmail}</div>
+                    <div className="text-sm text-text-muted">현재 로그인: {userLabel}</div>
                     <button
                         onClick={handleSignOut}
                         className="text-xs font-bold px-3 py-1.5 rounded-lg border border-border-strong bg-bg-surface-hover"
@@ -125,10 +156,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             ) : (
                 <>
                     <input
-                        type="email"
-                        placeholder="email@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        type="text"
+                        placeholder="아이디 (영문/숫자/_)"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
                     />
                     <input
@@ -184,10 +215,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                         </button>
                         <div className="text-sm font-bold text-text-base mb-3">회원가입</div>
                         <input
-                            type="email"
-                            placeholder="email@example.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            placeholder="아이디 (영문/숫자/_)"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
                         />
                         <input
@@ -195,6 +226,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                             placeholder="비밀번호"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
+                        />
+                        <input
+                            type="email"
+                            placeholder="이메일 (아이디/비번 찾기용, 선택)"
+                            value={recoveryEmail}
+                            onChange={(e) => setRecoveryEmail(e.target.value)}
                             className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2"
                         />
                         {error && <div className="text-xs text-red-500 font-semibold mb-2">{error}</div>}
