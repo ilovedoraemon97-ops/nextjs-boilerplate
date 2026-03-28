@@ -23,14 +23,19 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
     const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
     const [recoveryEmailInput, setRecoveryEmailInput] = useState('');
 
+    const [isIdChecked, setIsIdChecked] = useState(false);
+    const [idCheckMessage, setIdCheckMessage] = useState<string | null>(null);
+    const [isIdChecking, setIsIdChecking] = useState(false);
+
     const resetSignUpState = () => {
         setUsername('');
         setPassword('');
         setRecoveryEmail('');
-        setEmailSent(false);
-        setOtpCode('');
         setError(null);
         setNotice(null);
+        setIsIdChecked(false);
+        setIdCheckMessage(null);
+        setIsIdChecking(false);
     };
 
     useEffect(() => {
@@ -119,7 +124,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         }
     };
 
-    const handleRequestVerification = async () => {
+    const handleSignUp = async () => {
         if (!supabaseClient) return;
         const normalized = normalizeUsername(username);
         if (!normalized || !password) {
@@ -128,6 +133,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         }
         if (!isValidUsername(normalized)) {
             setError('아이디는 영문 소문자, 숫자, _ 만 가능합니다 (3~20자).');
+            return;
+        }
+        if (!isIdChecked) {
+            setError('아이디 중복확인을 먼저 진행해주세요.');
             return;
         }
         const emailValue = recoveryEmail.trim();
@@ -140,23 +149,6 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         setError(null);
         setNotice(null);
         try {
-            // 1. Check if username is already taken
-            const { data: isAvailable, error: checkError } = await supabaseClient.rpc('check_username_available', {
-                p_username: normalized
-            });
-
-            if (checkError) {
-                setError('아이디 중복 확인 중 오류가 발생했습니다.');
-                setLoading(false);
-                return;
-            }
-
-            if (!isAvailable) {
-                setError('이미 사용중인 아이디입니다. 다른 아이디를 입력해주세요.');
-                setLoading(false);
-                return;
-            }
-
             // 1.5 Check if email is already taken
             const { data: isEmailAvailable, error: emailCheckError } = await supabaseClient.rpc('check_email_available', {
                 p_email: emailValue
@@ -188,9 +180,21 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             if (error) {
                 setError(error.message);
                 setLoading(false);
+            } else if (data.session) {
+                // Confirm email is OFF. Session granted.
+                // Upsert user profile
+                const { error: profileError } = await supabaseClient.from('user_profiles').upsert({
+                    id: data.session.user.id,
+                    username: normalized,
+                    recovery_email: emailValue,
+                    profile_setup_completed: false
+                });
+                if (profileError) {
+                    console.warn('[auth] failed to upsert user_profiles', profileError);
+                }
+                window.location.href = '/onboarding';
             } else {
-                setEmailSent(true);
-                setNotice('인증메일 발송! 메일이 안오면 스팸메일함을 확인해주세요.');
+                setError('가입은 성공했으나, 자동 로그인을 위해 Supabase에서 "Confirm email" 설정을 다시 꺼주세요.');
                 setLoading(false);
             }
         } catch (err: any) {
@@ -351,75 +355,80 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                             ✕
                         </button>
                         <div className="text-sm font-bold text-text-base mb-3">회원가입</div>
-                        <input
-                            type="text"
-                            placeholder="아이디 (영문/숫자/_)"
-                            value={username}
-                            disabled={emailSent || loading}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2 disabled:opacity-50"
-                        />
+                        <div className="flex space-x-2 mb-2">
+                            <input
+                                type="text"
+                                placeholder="아이디 (영문/숫자/_)"
+                                value={username}
+                                disabled={loading || isIdChecking}
+                                onChange={(e) => {
+                                    setUsername(e.target.value);
+                                    setIsIdChecked(false);
+                                    setIdCheckMessage(null);
+                                }}
+                                className="flex-1 bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
+                            />
+                            <button
+                                onClick={async () => {
+                                    const normalized = normalizeUsername(username);
+                                    if (!isValidUsername(normalized)) {
+                                        setIdCheckMessage('영문, 숫자, _ 만 가능합니다 (3~20자).');
+                                        return;
+                                    }
+                                    setIsIdChecking(true);
+                                    setIdCheckMessage(null);
+                                    const { data: isAvailable, error: checkError } = await supabaseClient!.rpc('check_username_available', { p_username: normalized });
+                                    setIsIdChecking(false);
+                                    if (checkError) {
+                                        setIdCheckMessage('오류가 발생했습니다.');
+                                        setIsIdChecked(false);
+                                    } else if (isAvailable) {
+                                        setIdCheckMessage('사용 가능한 아이디입니다.');
+                                        setIsIdChecked(true);
+                                    } else {
+                                        setIdCheckMessage('이미 사용중인 아이디입니다.');
+                                        setIsIdChecked(false);
+                                    }
+                                }}
+                                disabled={loading || isIdChecking || !username}
+                                className="bg-bg-surface-hover border border-border-strong text-text-base text-xs font-bold px-3 py-2 rounded-lg hover:bg-border-subtle transition-colors whitespace-nowrap disabled:opacity-50"
+                            >
+                                {isIdChecking ? '확인중...' : '중복확인'}
+                            </button>
+                        </div>
+                        {idCheckMessage && (
+                            <div className={`text-xs font-semibold mb-2 ${isIdChecked ? 'text-[#00C853]' : 'text-red-500'}`}>
+                                {idCheckMessage}
+                            </div>
+                        )}
                         <input
                             type="password"
                             placeholder="비밀번호"
                             value={password}
-                            disabled={emailSent || loading}
+                            disabled={loading}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2 disabled:opacity-50"
                         />
 
-                        <div className="flex space-x-2 mb-2">
-                            <input
-                                type="email"
-                                placeholder="이메일 입력"
-                                value={recoveryEmail}
-                                disabled={emailSent || loading}
-                                onChange={(e) => setRecoveryEmail(e.target.value)}
-                                className="flex-1 bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
-                            />
-                            <button
-                                onClick={handleRequestVerification}
-                                disabled={loading || emailSent}
-                                className="bg-primary text-white text-xs font-bold px-3 py-2 rounded-lg hover:bg-opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50"
-                            >
-                                {loading ? '발송중...' : (emailSent ? '발송완료' : '인증하기')}
-                            </button>
-                        </div>
-
-                        {emailSent && (
-                            <div className="flex space-x-2 mb-2 animate-fade-in mt-3">
-                                <input
-                                    type="text"
-                                    placeholder="인증번호 6자리"
-                                    maxLength={6}
-                                    value={otpCode}
-                                    onChange={(e) => setOtpCode(e.target.value)}
-                                    className="flex-1 bg-bg-base border border-border-strong rounded-lg px-3 py-2 text-sm text-text-base font-bold tracking-[0.2em] focus:outline-none focus:ring-2 focus:ring-primary/40"
-                                />
-                                <button
-                                    onClick={handleVerifyOtp}
-                                    disabled={verifying}
-                                    className="bg-accent text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-opacity whitespace-nowrap disabled:opacity-50"
-                                >
-                                    {verifying ? '확인중...' : '가입 완료하기'}
-                                </button>
-                            </div>
-                        )}
+                        <input
+                            type="email"
+                            placeholder="이메일 입력"
+                            value={recoveryEmail}
+                            disabled={loading}
+                            onChange={(e) => setRecoveryEmail(e.target.value)}
+                            className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 mb-2 disabled:opacity-50"
+                        />
 
                         {error && <div className="text-xs text-red-500 font-semibold mb-2">{error}</div>}
                         {notice && <div className="text-xs text-text-muted font-semibold mb-2">{notice}</div>}
 
-                        {emailSent && (
-                            <div className="text-xs font-semibold text-text-muted text-center pt-2 border-t border-border-subtle">
-                                인증번호가 오지 않나요?{' '}
-                                <button
-                                    className="text-text-base hover:text-primary underline font-bold"
-                                    onClick={handleRequestVerification}
-                                >
-                                    다시 보내기
-                                </button>
-                            </div>
-                        )}
+                        <button
+                            onClick={handleSignUp}
+                            disabled={loading || !username || !password || !recoveryEmail || !isIdChecked}
+                            className="w-full bg-primary text-white text-sm font-bold mt-2 py-3 rounded-lg hover:bg-opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                            {loading ? '가입중...' : '가입 완료하기'}
+                        </button>
                     </div>
                 </div>
             )}

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import AuthGate from "@/components/AuthGate";
+import GlobalOnboarding from "@/components/GlobalOnboarding";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-bg-base text-text-base flex justify-center`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-bg-base text-text-base flex justify-center tracking-tight`}
       >
         <div id="app-shell" className="w-full sm:max-w-md bg-bg-surface min-h-screen relative shadow-2xl overflow-hidden flex flex-col pb-20">
           <main className="flex-1 w-full h-full overflow-y-auto">
@@ -43,6 +44,7 @@ export default function RootLayout({
           </main>
           <BottomNav />
         </div>
+        <GlobalOnboarding />
         <AuthGate />
       </body>
     </html>

@@ -5,13 +5,11 @@ import { clsx } from 'clsx';
 import { format, startOfWeek } from 'date-fns';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
-import AuthPanel from '@/components/AuthPanel';
 import WeeklyCalendar from '@/components/WeeklyCalendar';
 import TimerModal from '@/components/TimerModal';
 import AchievementCard from '@/components/AchievementCard';
 import WeeklyCertificateModal from '@/components/WeeklyCertificateModal';
 import NormalBlockModal from '@/components/NormalBlockModal';
-import Onboarding from '@/components/Onboarding';
 import BlockActionModal from '@/components/BlockActionModal';
 import { useRouter } from 'next/navigation';
 import GoalSettingModal from '@/components/GoalSettingModal';
@@ -32,8 +30,6 @@ export default function Home() {
   const [weeklySummary, setWeeklySummary] = useState<WeeklyGoalSummary | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [fabHost, setFabHost] = useState<HTMLElement | null>(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [isNormalModalOpen, setIsNormalModalOpen] = useState(false);
   const [selectedDateForNormal, setSelectedDateForNormal] = useState<string | null>(null);
@@ -61,13 +57,8 @@ export default function Home() {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabaseClient) return;
-    supabaseClient.auth.getUser().then(({ data }) => {
-      setIsLoggedIn(Boolean(data.user));
-    });
     const { data: subscription } = supabaseClient.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(Boolean(session?.user));
       if (event === 'SIGNED_IN') {
-        setIsAuthOpen(false);
         loadProgressFromServer();
       }
     });
@@ -284,10 +275,6 @@ export default function Home() {
         targetDate={selectedDateForNormal}
         blockToEdit={normalBlockToEdit}
       />
-
-      <Onboarding onComplete={() => {
-        if (!isLoggedIn) setIsAuthOpen(true);
-      }} />
     </div>
   );
 }
