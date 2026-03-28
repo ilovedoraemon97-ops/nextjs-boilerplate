@@ -1,12 +1,45 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
 import { BarChart3, Settings, Trophy, Zap } from 'lucide-react';
+import { supabaseClient } from '@/lib/supabaseClient';
 
 export default function ProfilePage() {
     const stats = useDoneDayStore(state => state.stats);
     const settings = useDoneDayStore(state => state.settings);
     const updateSettings = useDoneDayStore(state => state.updateSettings);
+    const [userName, setUserName] = useState<string>('비회원');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (!supabaseClient) return;
+            const { data } = await supabaseClient.auth.getUser();
+            if (data.user) {
+                setIsLoggedIn(true);
+                // Default to nickname if set during onboarding, else username, else email
+                const displayName = data.user.user_metadata?.nickname || data.user.user_metadata?.username || data.user.email?.split('@')[0] || '사용자';
+                setUserName(displayName);
+            }
+        };
+        fetchUser();
+    }, []);
+
+    const handleAuthAction = async () => {
+        if (!supabaseClient) return;
+        if (isLoggedIn) {
+            const confirmLogout = window.confirm('로그아웃 하시겠습니까?');
+            if (confirmLogout) {
+                await supabaseClient.auth.signOut();
+                localStorage.setItem('doneday-guest-continue', '1');
+                window.location.reload();
+            }
+        } else {
+            localStorage.removeItem('doneday-guest-continue');
+            window.location.reload(); // Reloads triggering AuthGate
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-full pb-24">
@@ -19,10 +52,12 @@ export default function ProfilePage() {
                         <Settings className="w-5 h-5" />
                     </button>
 
-                    <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4">
-                        <span className="text-3xl font-black text-primary">K</span>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4 border-2 border-primary/20">
+                        <span className="text-3xl font-black text-primary capitalize">
+                            {userName.charAt(0)}
+                        </span>
                     </div>
-                    <h2 className="text-xl font-bold">Kayoung</h2>
+                    <h2 className="text-xl font-bold">{userName}</h2>
                     <p className="text-text-muted text-sm font-medium mt-1 mb-4">Level {stats.level} 갓생러</p>
 
                     <div className="bg-bg-surface-hover rounded-xl p-3 flex justify-between items-center text-left">
@@ -119,6 +154,15 @@ export default function ProfilePage() {
                     </div>
                     <button className="w-full bg-bg-surface py-2 rounded-xl text-sm font-bold shadow-sm transition-transform active:scale-95">
                         랭킹 보러가기
+                    </button>
+                </div>
+
+                <div className="pt-4">
+                    <button
+                        onClick={handleAuthAction}
+                        className="w-full py-3 rounded-2xl text-sm font-bold border border-border-strong text-text-muted hover:bg-bg-surface-hover transition-colors"
+                    >
+                        {isLoggedIn ? '로그아웃' : '로그인 및 회원가입'}
                     </button>
                 </div>
             </div>
