@@ -207,7 +207,7 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete, confirmO
                                 시작시간: {buildSession()?.startStr} / 종료 시간: {buildSession()?.endStr}
                             </p>
                             <div className="bg-bg-base border border-border-subtle rounded-xl p-4 text-sm text-text-muted font-medium mb-6 text-center">
-                                갓생 블록이 일정표에 자동 생성됩니다
+                                갓생 블록이 일정표에 자동으로 생성돼요.
                             </div>
 
                             <div className="flex space-x-3">
@@ -218,7 +218,7 @@ export default function TimerModal({ goal, isOpen, onClose, onComplete, confirmO
                                     }}
                                     className="flex-1 bg-primary text-white rounded-xl py-3.5 font-bold transition-all active:scale-[0.98]"
                                 >
-                                    확인
+                                    저장
                                 </button>
                                 <button
                                     onClick={() => {

@@ -19,9 +19,12 @@ export default function OnboardingPage() {
     const router = useRouter();
     const [nickname, setNickname] = useState('');
     const [statusMessage, setStatusMessage] = useState('');
+    const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [user, setUser] = useState<any>(null);
+    const totalSteps = 3;
+    const progressPercent = Math.round((step / totalSteps) * 100);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -143,71 +146,105 @@ export default function OnboardingPage() {
             <div className="w-full max-w-sm bg-bg-surface border border-border-strong rounded-3xl p-6 shadow-sm">
                 <div className="text-center mb-6">
                     <h1 className="text-2xl font-black text-text-base mb-1">프로필 설정</h1>
-                    <p className="text-sm text-text-muted font-medium">거의 다 왔어요! 당신을 표현해주세요.</p>
+                    <p className="text-sm text-text-muted font-medium">거의 다 왔어요. 나를 한 줄로 알려주세요.</p>
+                </div>
+
+                <div className="mb-6">
+                    <div className="flex items-center justify-between text-xs text-text-muted font-semibold mb-2">
+                        <span>{step} / {totalSteps} 단계</span>
+                        <span>{progressPercent}%</span>
+                    </div>
+                    <div className="h-2 bg-border-subtle rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-primary transition-all duration-300"
+                            style={{ width: `${progressPercent}%` }}
+                        />
+                    </div>
                 </div>
 
                 <div className="space-y-6">
-                    {/* Avatar Selection (Mock) */}
-                    <div className="flex flex-col items-center">
-                        <div className="relative w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
-                            <span className="text-4xl font-black text-primary capitalize">
-                                {nickname ? nickname.charAt(0) : '?'}
-                            </span>
-                            <div className="absolute bottom-0 right-0 w-8 h-8 bg-bg-surface border border-border-strong rounded-full flex items-center justify-center shadow-sm">
-                                <Camera className="w-4 h-4 text-text-base" />
+                    {step === 1 && (
+                        <div className="flex flex-col items-center">
+                            <div className="relative w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center cursor-pointer hover:bg-primary/20 transition-colors">
+                                <span className="text-4xl font-black text-primary capitalize">
+                                    {nickname ? nickname.charAt(0) : '?'}
+                                </span>
+                                <div className="absolute bottom-0 right-0 w-8 h-8 bg-bg-surface border border-border-strong rounded-full flex items-center justify-center shadow-sm">
+                                    <Camera className="w-4 h-4 text-text-base" />
+                                </div>
                             </div>
+                            <span className="text-xs text-text-muted mt-2 font-medium bg-bg-surface-hover px-2 py-1 rounded-md">사진 등록은 준비 중이에요.</span>
                         </div>
-                        <span className="text-xs text-text-muted mt-2 font-medium bg-bg-surface-hover px-2 py-1 rounded-md">사진 등록 (준비중)</span>
-                    </div>
+                    )}
 
-                    {/* Nickname Input */}
-                    <div>
-                        <div className="flex justify-between items-center mb-1">
-                            <label className="text-sm font-bold text-text-base">닉네임</label>
-                            <button
-                                onClick={handleRandomize}
-                                className="text-xs font-bold text-accent hover:text-accent flex items-center space-x-1"
-                            >
-                                <RefreshCw className="w-3 h-3" />
-                                <span>랜덤 닉네임</span>
-                            </button>
+                    {step === 2 && (
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-text-base">닉네임</label>
+                                <button
+                                    onClick={handleRandomize}
+                                    className="text-xs font-bold text-accent hover:text-accent flex items-center space-x-1"
+                                >
+                                    <RefreshCw className="w-3 h-3" />
+                                    <span>랜덤 닉네임</span>
+                                </button>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="비워두면 자동으로 만들어드려요."
+                                value={nickname}
+                                onChange={(e) => {
+                                    setNickname(e.target.value);
+                                    setError(null);
+                                }}
+                                className="w-full bg-bg-base border border-border-subtle rounded-xl px-3 py-3 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow"
+                            />
                         </div>
-                        <input
-                            type="text"
-                            placeholder="입력 안 할시 자동 생성"
-                            value={nickname}
-                            onChange={(e) => {
-                                setNickname(e.target.value);
-                                setError(null);
-                            }}
-                            className="w-full bg-bg-base border border-border-subtle rounded-xl px-3 py-3 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow"
-                        />
-                    </div>
+                    )}
 
-                    {/* Status Message */}
-                    <div>
-                        <div className="flex justify-between items-center mb-1">
-                            <label className="text-sm font-bold text-text-base">상태 메시지</label>
-                            <span className="text-xs text-text-muted font-medium">{statusMessage.length}/50</span>
+                    {step === 3 && (
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <label className="text-sm font-bold text-text-base">상태 메시지</label>
+                                <span className="text-xs text-text-muted font-medium">{statusMessage.length}/50</span>
+                            </div>
+                            <textarea
+                                placeholder="오늘의 다짐을 적어보세요. (선택)"
+                                value={statusMessage}
+                                maxLength={50}
+                                onChange={(e) => setStatusMessage(e.target.value)}
+                                className="w-full bg-bg-base border border-border-subtle rounded-xl px-3 py-3 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow h-24 resize-none"
+                            />
                         </div>
-                        <textarea
-                            placeholder="오늘의 다짐을 적어보세요 (선택)"
-                            value={statusMessage}
-                            maxLength={50}
-                            onChange={(e) => setStatusMessage(e.target.value)}
-                            className="w-full bg-bg-base border border-border-subtle rounded-xl px-3 py-3 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 transition-shadow h-24 resize-none"
-                        />
-                    </div>
+                    )}
 
                     {error && <div className="text-sm font-bold text-red-500 bg-red-500/10 p-3 rounded-xl">{error}</div>}
 
-                    <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-opacity-90 transition-opacity disabled:opacity-50"
-                    >
-                        {loading ? '저장중...' : 'DoneDay 시작하기'}
-                    </button>
+                    <div className="flex gap-2">
+                        {step > 1 && (
+                            <button
+                                onClick={() => setStep(step - 1)}
+                                disabled={loading}
+                                className="flex-1 border border-border-strong text-text-muted py-3.5 rounded-xl font-bold hover:bg-bg-surface-hover transition-colors disabled:opacity-50"
+                            >
+                                이전
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                setError(null);
+                                if (step < totalSteps) {
+                                    setStep(step + 1);
+                                } else {
+                                    handleSubmit();
+                                }
+                            }}
+                            disabled={loading}
+                            className="flex-1 bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-opacity-90 transition-opacity disabled:opacity-50"
+                        >
+                            {loading ? '저장중...' : step < totalSteps ? '다음' : 'DoneDay 시작하기'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -11,9 +11,6 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [recoveryEmail, setRecoveryEmail] = useState('');
-    const [emailSent, setEmailSent] = useState(false);
-    const [otpCode, setOtpCode] = useState('');
-    const [verifying, setVerifying] = useState(false);
     const [userLabel, setUserLabel] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -56,7 +53,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
     if (!isSupabaseConfigured) {
         return (
             <div className="bg-bg-surface border border-border-subtle rounded-xl p-4 text-sm text-text-muted">
-                Supabase 설정이 필요합니다. `.env.local`에 키를 넣어주세요.
+                Supabase 설정이 필요해요. `.env.local`에 키를 넣어주세요.
             </div>
         );
     }
@@ -69,11 +66,11 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         if (!supabaseClient) return;
         const normalized = normalizeUsername(username);
         if (!normalized || !password) {
-            setError('아이디와 비밀번호를 입력해주세요.');
+            setError('아이디와 비밀번호를 입력해 주세요.');
             return;
         }
         if (!isValidUsername(normalized)) {
-            setError('아이디는 영문 소문자, 숫자, _ 만 가능합니다 (3~20자).');
+            setError('아이디는 영문 소문자/숫자/_만 가능해요. (3~20자)');
             return;
         }
         setLoading(true);
@@ -86,7 +83,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             });
 
             if (rpcError || !emailData) {
-                setError('존재하지 않는 아이디입니다.');
+                setError('존재하지 않는 아이디예요.');
                 setLoading(false);
                 return;
             }
@@ -97,9 +94,9 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             });
             if (error) {
                 if (error.message.includes('Email not confirmed')) {
-                    setError('이메일 인증이 완료되지 않았습니다. 받은편지함을 확인해주세요.');
+                    setError('이메일 인증이 아직 끝나지 않았어요. 메일함을 확인해 주세요.');
                 } else {
-                    setError('비밀번호가 일치하지 않거나 오류가 발생합니다. (아이디/비밀번호 확인)');
+                    setError('아이디 또는 비밀번호가 맞지 않아요.');
                     console.error('[auth] signInWithPassword error:', error);
                 }
             } else if (data.session) {
@@ -128,20 +125,20 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
         if (!supabaseClient) return;
         const normalized = normalizeUsername(username);
         if (!normalized || !password) {
-            setError('아이디와 비밀번호를 입력해주세요.');
+            setError('아이디와 비밀번호를 입력해 주세요.');
             return;
         }
         if (!isValidUsername(normalized)) {
-            setError('아이디는 영문 소문자, 숫자, _ 만 가능합니다 (3~20자).');
+            setError('아이디는 영문 소문자/숫자/_만 가능해요. (3~20자)');
             return;
         }
         if (!isIdChecked) {
-            setError('아이디 중복확인을 먼저 진행해주세요.');
+            setError('아이디 중복확인을 먼저 해주세요.');
             return;
         }
         const emailValue = recoveryEmail.trim();
         if (!emailValue || !emailValue.includes('@')) {
-            setError('유효한 이메일을 입력해주세요.');
+            setError('유효한 이메일을 입력해 주세요.');
             return;
         }
 
@@ -155,13 +152,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
             });
 
             if (emailCheckError) {
-                setError('이메일 중복 확인 중 오류가 발생했습니다.');
+                setError('이메일 중복 확인 중 문제가 있었어요. 잠시 후 다시 시도해 주세요.');
                 setLoading(false);
                 return;
             }
 
             if (!isEmailAvailable) {
-                setError('이미 가입된 이메일이에요. 로그인 화면에서 아이디/비밀번호 찾기를 진행해보세요.');
+                setError('이미 가입된 이메일이에요. 로그인 화면에서 아이디/비밀번호 찾기를 진행해 주세요.');
                 setLoading(false);
                 return;
             }
@@ -194,55 +191,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                 }
                 window.location.href = '/onboarding';
             } else {
-                setError('가입은 성공했으나, 자동 로그인을 위해 Supabase에서 "Confirm email" 설정을 다시 꺼주세요.');
+                setError('가입은 완료됐어요. 자동 로그인을 위해 Supabase에서 이메일 인증을 꺼주세요.');
                 setLoading(false);
             }
         } catch (err: any) {
-            setError(err.message || '네트워크 오류가 발생했습니다.');
+            setError(err.message || '네트워크 오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
             console.error('[auth] signup error', err);
             setLoading(false);
-        }
-    };
-
-    const handleVerifyOtp = async () => {
-        if (!otpCode || otpCode.length !== 6) {
-            setError('올바른 6자리 인증번호를 입력해주세요.');
-            return;
-        }
-        setVerifying(true);
-        setError(null);
-        const normalized = normalizeUsername(username);
-        const emailValue = recoveryEmail.trim();
-
-        try {
-            const { data, error } = await supabaseClient!.auth.verifyOtp({
-                email: emailValue,
-                token: otpCode.trim(),
-                type: 'signup'
-            });
-
-            if (error) {
-                setError('인증 번호가 올바르지 않거나 만료되었습니다.');
-            } else if (data.user) {
-                // Upsert user profile
-                const { error: profileError } = await supabaseClient!.from('user_profiles').upsert({
-                    id: data.user.id,
-                    username: normalized,
-                    recovery_email: emailValue,
-                    profile_setup_completed: false
-                });
-                if (profileError) {
-                    console.warn('[auth] failed to upsert user_profiles', profileError);
-                }
-
-                // Finish
-                window.location.href = '/onboarding';
-            }
-        } catch (err: any) {
-            setError(err.message || '인증 오류가 발생했습니다.');
-            console.error('[auth] verifyOtp error', err);
-        } finally {
-            setVerifying(false);
         }
     };
 
@@ -369,10 +324,10 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                                 className="flex-1 bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-50"
                             />
                             <button
-                                onClick={async () => {
+                            onClick={async () => {
                                     const normalized = normalizeUsername(username);
                                     if (!isValidUsername(normalized)) {
-                                        setIdCheckMessage('영문, 숫자, _ 만 가능합니다 (3~20자).');
+                                        setIdCheckMessage('영문 소문자/숫자/_만 가능해요. (3~20자)');
                                         return;
                                     }
                                     setIsIdChecking(true);
@@ -380,13 +335,13 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                                     const { data: isAvailable, error: checkError } = await supabaseClient!.rpc('check_username_available', { p_username: normalized });
                                     setIsIdChecking(false);
                                     if (checkError) {
-                                        setIdCheckMessage('오류가 발생했습니다.');
+                                        setIdCheckMessage('중복 확인 중 문제가 있었어요. 잠시 후 다시 시도해 주세요.');
                                         setIsIdChecked(false);
                                     } else if (isAvailable) {
-                                        setIdCheckMessage('사용 가능한 아이디입니다.');
+                                        setIdCheckMessage('사용 가능한 아이디예요.');
                                         setIsIdChecked(true);
                                     } else {
-                                        setIdCheckMessage('이미 사용중인 아이디입니다.');
+                                        setIdCheckMessage('이미 사용 중인 아이디예요.');
                                         setIsIdChecked(false);
                                     }
                                 }}
@@ -412,7 +367,7 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
 
                         <input
                             type="email"
-                            placeholder="이메일 입력"
+                            placeholder="이메일 입력 (아이디/비번 찾기용)"
                             value={recoveryEmail}
                             disabled={loading}
                             onChange={(e) => setRecoveryEmail(e.target.value)}
@@ -454,15 +409,15 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                         {recoveryNotice && <div className="text-xs text-primary font-semibold mb-2 whitespace-pre-line leading-relaxed">{recoveryNotice}</div>}
                         <div className="flex gap-2">
                             <button
-                                onClick={async () => {
-                                    if (!recoveryEmailInput.includes('@')) { setError('이메일을 입력해주세요.'); return; }
+                            onClick={async () => {
+                                    if (!recoveryEmailInput.includes('@')) { setError('이메일을 입력해 주세요.'); return; }
                                     setLoading(true); setError(null); setRecoveryNotice(null);
                                     const { data, error: rpcError } = await supabaseClient!.rpc('get_username_by_email', { p_email: recoveryEmailInput.trim() });
                                     setLoading(false);
                                     if (rpcError || !data) {
-                                        setError('해당 이메일로 가입된 계정을 찾을 수 없습니다.');
+                                        setError('해당 이메일로 가입된 계정을 찾을 수 없어요.');
                                     } else {
-                                        setRecoveryNotice(`회원님의 아이디는 [ ${data} ] 입니다.\n비밀번호를 잊으셨다면 우측 버튼을 눌러 초기화하세요.`);
+                                        setRecoveryNotice(`회원님의 아이디는 [ ${data} ] 입니다.\n비밀번호를 잊으셨다면 우측 버튼으로 초기화해 주세요.`);
                                     }
                                 }}
                                 disabled={loading}
@@ -472,16 +427,16 @@ export default function AuthPanel({ onSignedIn, onSignedOut }: Props) {
                             </button>
                             <button
                                 onClick={async () => {
-                                    if (!recoveryEmailInput.includes('@')) { setError('이메일을 입력해주세요.'); return; }
+                                    if (!recoveryEmailInput.includes('@')) { setError('이메일을 입력해 주세요.'); return; }
                                     setLoading(true); setError(null); setRecoveryNotice(null);
                                     const { error: resetError } = await supabaseClient!.auth.resetPasswordForEmail(recoveryEmailInput.trim(), {
                                         redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
                                     });
                                     setLoading(false);
                                     if (resetError) {
-                                        setError('이메일 발송 중 오류가 발생했습니다.');
+                                        setError('이메일 발송 중 문제가 있었어요.');
                                     } else {
-                                        setRecoveryNotice('이메일로 비밀번호 재설정 링크를 발송했습니다. 메일함을 확인해주세요.');
+                                        setRecoveryNotice('이메일로 비밀번호 재설정 링크를 보냈어요. 메일함을 확인해 주세요.');
                                     }
                                 }}
                                 disabled={loading}

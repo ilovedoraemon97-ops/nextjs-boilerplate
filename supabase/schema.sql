@@ -90,6 +90,10 @@ create table if not exists public.user_profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   username text unique not null,
   recovery_email text,
+  nickname text,
+  status_message text,
+  avatar_url text,
+  profile_setup_completed boolean not null default false,
   created_at timestamptz not null default now()
 );
 
@@ -119,3 +123,56 @@ using (id = auth.uid())
 with check (id = auth.uid());
 
 grant select, insert, update on table public.user_profiles to authenticated;
+
+create unique index if not exists user_profiles_nickname_key on public.user_profiles (nickname) where nickname is not null;
+
+-- Auth helper functions (username/email lookup)
+create or replace function public.check_username_available(p_username text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  return not exists (
+    select 1 from public.user_profiles where username = p_username
+  );
+end;
+$$;
+
+create or replace function public.check_email_available(p_email text)
+returns boolean
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select not exists (
+    select 1 from auth.users where email = p_email
+  );
+$$;
+
+create or replace function public.get_email_by_username(p_username text)
+returns text
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select u.email
+  from auth.users u
+  join public.user_profiles p on p.id = u.id
+  where p.username = p_username
+  limit 1;
+$$;
+
+create or replace function public.get_username_by_email(p_email text)
+returns text
+language sql
+security definer
+set search_path = public, auth
+as $$
+  select p.username
+  from auth.users u
+  join public.user_profiles p on p.id = u.id
+  where u.email = p_email
+  limit 1;
+$$;

@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import Onboarding from './Onboarding';
 import AuthPanel from './AuthPanel';
 import { supabaseClient } from '@/lib/supabaseClient';
-import { X } from 'lucide-react';
 
 export default function GlobalOnboarding() {
     const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -30,16 +29,16 @@ export default function GlobalOnboarding() {
             {isAuthOpen && !isLoggedIn && (
                 <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
                     <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4 relative">
-                        <button
-                            onClick={() => setIsAuthOpen(false)}
-                            className="absolute top-2 right-2 p-2 text-text-muted hover:bg-bg-surface-hover rounded-full transition-colors"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
                         <AuthPanel />
                         <div className="text-center mt-3 border-t border-border-subtle pt-3 text-xs text-text-muted font-medium">
-                            나중에 언제든지 프로필 메뉴에서 로그인 할 수 있어요
+                            나중에 언제든지 프로필 메뉴에서 로그인할 수 있어요.
                         </div>
+                        <button
+                            onClick={() => setIsAuthOpen(false)}
+                            className="mt-3 w-full text-sm font-bold px-4 py-2 rounded-lg border border-border-strong bg-bg-surface-hover"
+                        >
+                            비회원으로 계속하기
+                        </button>
                     </div>
                 </div>
             )}

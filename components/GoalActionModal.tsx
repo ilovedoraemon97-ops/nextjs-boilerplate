@@ -83,14 +83,6 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                 </div>
 
                 <div className="p-4 space-y-2">
-                    <button
-                        onClick={() => setIsDetailOpen(true)}
-                        className="w-full flex items-center justify-center bg-bg-base text-text-base border border-border-subtle hover:border-text-muted rounded-xl py-3 text-sm font-bold transition-all"
-                    >
-                        <List className="w-4 h-4 mr-2" />
-                        진척 세부내역
-                    </button>
-
                     <div className="bg-bg-base border border-border-subtle rounded-xl p-2">
                         <button
                             onClick={() => { onClose(); onStartTimer(); }}
@@ -102,6 +94,14 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
                     </div>
 
                     <button
+                        onClick={() => setIsDetailOpen(true)}
+                        className="w-full flex items-center justify-center bg-bg-base text-text-base border border-border-subtle hover:border-text-muted rounded-xl py-3 text-sm font-bold transition-all"
+                    >
+                        <List className="w-4 h-4 mr-2" />
+                        진척 세부내역
+                    </button>
+
+                    <button
                         onClick={() => { onClose(); onEditGoal(); }}
                         className="w-full flex items-center justify-center bg-bg-base text-text-base border border-border-subtle hover:border-text-muted rounded-xl py-3 text-sm font-bold transition-all"
                     >
@@ -111,10 +111,13 @@ export default function GoalActionModal({ isOpen, onClose, goal, onEditGoal, onS
 
                     <button
                         onClick={handleDelete}
-                        className="w-full flex items-center justify-center bg-failed-bg text-failed-hover border border-failed-border hover:border-failed-hover rounded-xl py-3 text-sm font-bold transition-all"
+                        className="w-full flex flex-col items-center justify-center bg-failed-bg text-failed-hover border border-failed-border hover:border-failed-hover rounded-xl py-3 text-sm font-bold transition-all"
                     >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        목표 삭제/유지
+                        <div className="flex items-center">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            <span>목표 삭제/삭제취소</span>
+                        </div>
+                        <span className="text-[11px] text-text-muted font-semibold mt-1">삭제는 다음주 월요일에 반영돼요</span>
                     </button>
                 </div>
             </div>

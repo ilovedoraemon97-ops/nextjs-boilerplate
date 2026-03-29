@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center text-sm text-text-muted">
-            로그인 처리중...
+            로그인 처리 중이에요...
         </div>
     );
 }

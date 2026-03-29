@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDoneDayStore } from '@/store/useDoneDayStore';
 import Header from '@/components/Header';
 import { BarChart3, Settings, Trophy, Zap } from 'lucide-react';
 import { supabaseClient } from '@/lib/supabaseClient';
+import AuthPanel from '@/components/AuthPanel';
 
 export default function ProfilePage() {
     const stats = useDoneDayStore(state => state.stats);
@@ -11,6 +12,19 @@ export default function ProfilePage() {
     const updateSettings = useDoneDayStore(state => state.updateSettings);
     const [userName, setUserName] = useState<string>('비회원');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [isEditOpen, setIsEditOpen] = useState(false);
+    const [profile, setProfile] = useState({
+        nickname: '',
+        statusMessage: '',
+        avatarUrl: '',
+    });
+    const [editNickname, setEditNickname] = useState('');
+    const [editStatus, setEditStatus] = useState('');
+    const [editAvatarUrl, setEditAvatarUrl] = useState('');
+    const cameraInputRef = useRef<HTMLInputElement | null>(null);
+    const albumInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -18,9 +32,31 @@ export default function ProfilePage() {
             const { data } = await supabaseClient.auth.getUser();
             if (data.user) {
                 setIsLoggedIn(true);
+                setUserId(data.user.id);
                 // Default to nickname if set during onboarding, else username, else email
-                const displayName = data.user.user_metadata?.nickname || data.user.user_metadata?.username || data.user.email?.split('@')[0] || '사용자';
+                const { data: profileData } = await supabaseClient
+                    .from('user_profiles')
+                    .select('nickname,status_message,avatar_url')
+                    .eq('id', data.user.id)
+                    .single();
+                const displayName = profileData?.nickname || data.user.user_metadata?.nickname || data.user.user_metadata?.username || data.user.email?.split('@')[0] || '사용자';
                 setUserName(displayName);
+                setProfile({
+                    nickname: profileData?.nickname || displayName,
+                    statusMessage: profileData?.status_message || '',
+                    avatarUrl: profileData?.avatar_url || '',
+                });
+            } else {
+                const guestRaw = localStorage.getItem('doneday-guest-profile');
+                if (guestRaw) {
+                    const guest = JSON.parse(guestRaw);
+                    setProfile({
+                        nickname: guest.nickname || '비회원',
+                        statusMessage: guest.statusMessage || '',
+                        avatarUrl: guest.avatarUrl || '',
+                    });
+                    setUserName(guest.nickname || '비회원');
+                }
             }
         };
         fetchUser();
@@ -29,16 +65,61 @@ export default function ProfilePage() {
     const handleAuthAction = async () => {
         if (!supabaseClient) return;
         if (isLoggedIn) {
-            const confirmLogout = window.confirm('로그아웃 하시겠습니까?');
+            const confirmLogout = window.confirm('로그아웃할까요?');
             if (confirmLogout) {
                 await supabaseClient.auth.signOut();
                 localStorage.setItem('doneday-guest-continue', '1');
                 window.location.reload();
             }
         } else {
-            localStorage.removeItem('doneday-guest-continue');
-            window.location.reload(); // Reloads triggering AuthGate
+            setIsAuthOpen(true);
         }
+    };
+
+    const openEditProfile = () => {
+        setEditNickname(profile.nickname || userName);
+        setEditStatus(profile.statusMessage || '');
+        setEditAvatarUrl(profile.avatarUrl || '');
+        setIsEditOpen(true);
+    };
+
+    const handleProfileSave = async () => {
+        const nextNickname = editNickname.trim() || '비회원';
+        const nextStatus = editStatus.trim();
+        const nextAvatar = editAvatarUrl;
+        if (isLoggedIn && supabaseClient && userId) {
+            await supabaseClient
+                .from('user_profiles')
+                .update({
+                    nickname: nextNickname,
+                    status_message: nextStatus || null,
+                    avatar_url: nextAvatar || null,
+                })
+                .eq('id', userId);
+            await supabaseClient.auth.updateUser({ data: { nickname: nextNickname } });
+        } else {
+            localStorage.setItem('doneday-guest-profile', JSON.stringify({
+                nickname: nextNickname,
+                statusMessage: nextStatus,
+                avatarUrl: nextAvatar,
+            }));
+        }
+        setProfile({
+            nickname: nextNickname,
+            statusMessage: nextStatus,
+            avatarUrl: nextAvatar,
+        });
+        setUserName(nextNickname);
+        setIsEditOpen(false);
+    };
+
+    const handleAvatarFile = (file?: File | null) => {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            setEditAvatarUrl(String(reader.result || ''));
+        };
+        reader.readAsDataURL(file);
     };
 
     return (
@@ -48,17 +129,23 @@ export default function ProfilePage() {
             <div className="p-4 space-y-6">
                 {/* User Card */}
                 <div className="bg-bg-surface border border-border-subtle rounded-3xl p-6 text-center shadow-sm relative">
-                    <button className="absolute top-4 right-4 text-text-muted hover:text-text-base">
+                    <button onClick={openEditProfile} className="absolute top-4 right-4 text-text-muted hover:text-text-base">
                         <Settings className="w-5 h-5" />
                     </button>
 
-                    <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4 border-2 border-primary/20">
-                        <span className="text-3xl font-black text-primary capitalize">
-                            {userName.charAt(0)}
-                        </span>
+                    <div className="w-20 h-20 rounded-full bg-primary/10 mx-auto flex items-center justify-center mb-4 border-2 border-primary/20 overflow-hidden">
+                        {profile.avatarUrl ? (
+                            <img src={profile.avatarUrl} alt="프로필 사진" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="text-3xl font-black text-primary capitalize">
+                                {userName.charAt(0)}
+                            </span>
+                        )}
                     </div>
                     <h2 className="text-xl font-bold">{userName}</h2>
-                    <p className="text-text-muted text-sm font-medium mt-1 mb-4">Level {stats.level} 갓생러</p>
+                    <p className="text-text-muted text-sm font-medium mt-1 mb-4">
+                        {profile.statusMessage ? profile.statusMessage : `Level ${stats.level} 갓생러`}
+                    </p>
 
                     <div className="bg-bg-surface-hover rounded-xl p-3 flex justify-between items-center text-left">
                         <div>
@@ -166,6 +253,105 @@ export default function ProfilePage() {
                     </button>
                 </div>
             </div>
+
+            {isAuthOpen && (
+                <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4">
+                        <AuthPanel
+                            onSignedIn={() => {
+                                setIsAuthOpen(false);
+                                window.location.reload();
+                            }}
+                        />
+                        <button
+                            onClick={() => setIsAuthOpen(false)}
+                            className="mt-3 w-full text-sm font-bold px-4 py-2 rounded-lg border border-border-strong bg-bg-surface-hover"
+                        >
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {isEditOpen && (
+                <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                    <div className="bg-bg-surface w-full max-w-sm rounded-2xl border border-border-strong shadow-lg p-4">
+                        <div className="text-sm font-bold text-text-base mb-3">프로필 수정</div>
+                        <div className="flex flex-col items-center mb-4">
+                            <div className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center overflow-hidden">
+                                {editAvatarUrl ? (
+                                    <img src={editAvatarUrl} alt="프로필 사진" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-3xl font-black text-primary capitalize">
+                                        {(editNickname || userName).charAt(0)}
+                                    </span>
+                                )}
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                                <button
+                                    onClick={() => cameraInputRef.current?.click()}
+                                    className="text-xs font-bold px-3 py-2 rounded-lg border border-border-strong bg-bg-surface-hover"
+                                >
+                                    사진 촬영
+                                </button>
+                                <button
+                                    onClick={() => albumInputRef.current?.click()}
+                                    className="text-xs font-bold px-3 py-2 rounded-lg border border-border-strong bg-bg-surface-hover"
+                                >
+                                    앨범에서 선택
+                                </button>
+                            </div>
+                            <input
+                                ref={cameraInputRef}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                onChange={(e) => handleAvatarFile(e.target.files?.[0])}
+                            />
+                            <input
+                                ref={albumInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleAvatarFile(e.target.files?.[0])}
+                            />
+                        </div>
+
+                        <div className="space-y-3">
+                            <input
+                                type="text"
+                                placeholder="닉네임"
+                                value={editNickname}
+                                onChange={(e) => setEditNickname(e.target.value)}
+                                className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            />
+                            <textarea
+                                placeholder="상태 메시지 (선택)"
+                                value={editStatus}
+                                maxLength={50}
+                                onChange={(e) => setEditStatus(e.target.value)}
+                                className="w-full bg-bg-base border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-base focus:outline-none focus:ring-2 focus:ring-primary/40 h-24 resize-none"
+                            />
+                        </div>
+
+                        <div className="flex gap-2 mt-4">
+                            <button
+                                onClick={() => setIsEditOpen(false)}
+                                className="flex-1 text-sm font-bold px-4 py-2 rounded-lg border border-border-strong bg-bg-surface-hover"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleProfileSave}
+                                className="flex-1 text-sm font-bold px-4 py-2 rounded-lg bg-primary text-white"
+                            >
+                                저장
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
