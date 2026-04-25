@@ -44,4 +44,5 @@ export interface UserSettings {
     activeStartHour: number; // e.g. 9 for 09:00
     activeEndHour: number;   // e.g. 2 for 02:00
     timeAxisInterval: 1 | 3; // 1-hour or 3-hour intervals
+    accentTheme?: 'default' | 'mint' | 'peach' | 'lavender' | 'monochrome'; // custom color variant
 }

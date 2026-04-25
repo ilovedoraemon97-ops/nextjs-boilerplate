@@ -205,15 +205,14 @@ export default function Onboarding({ onComplete }: Props) {
 
     return (
         <div className="fixed inset-0 z-[200] bg-bg-base flex flex-col pt-12 pb-8 px-6 animate-fade-in overflow-y-auto">
-            {/* Progress Gauge Fixed Top */}
-            <div className="fixed top-0 left-0 right-0 h-1 bg-border-subtle z-[210]">
-                <div
-                    className="h-full bg-primary transition-all duration-500 ease-out"
-                    style={{ width: `${progressPercent}%` }}
-                />
-            </div>
-
-            <div className="max-w-sm mx-auto w-full flex-1 flex flex-col pt-4">
+            <div className="max-w-sm mx-auto w-full flex-1 flex flex-col pt-2">
+                {/* Progress Gauge */}
+                <div className="w-full h-1.5 bg-bg-surface border border-border-subtle rounded-full mb-8 overflow-hidden relative shadow-sm">
+                    <div
+                        className="h-full bg-primary transition-all duration-500 ease-out"
+                        style={{ width: `${progressPercent}%` }}
+                    />
+                </div>
 
                 {step === 1 && (
                     <div className="flex-1 flex flex-col animate-fade-in">

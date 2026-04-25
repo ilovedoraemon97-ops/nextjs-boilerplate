@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import { BarChart3, Settings, Trophy, Zap } from 'lucide-react';
 import { supabaseClient } from '@/lib/supabaseClient';
 import AuthPanel from '@/components/AuthPanel';
+import { useTheme } from 'next-themes';
 
 export default function ProfilePage() {
     const stats = useDoneDayStore(state => state.stats);
@@ -25,8 +26,11 @@ export default function ProfilePage() {
     const [editAvatarUrl, setEditAvatarUrl] = useState('');
     const cameraInputRef = useRef<HTMLInputElement | null>(null);
     const albumInputRef = useRef<HTMLInputElement | null>(null);
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const fetchUser = async () => {
             if (!supabaseClient) return;
             const { data } = await supabaseClient.auth.getUser();
@@ -226,7 +230,46 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-accent/10 to-primary/10 border border-border-subtle rounded-2xl p-5 shadow-sm">
+                {/* Theme Section */}
+                {mounted && (
+                    <div className="bg-bg-surface border border-border-subtle rounded-2xl p-5 shadow-sm mt-4">
+                        <h3 className="font-bold text-sm mb-4 flex items-center text-text-base tracking-tight">
+                            <span className="mr-1.5 opacity-80">🎨</span> 테마 및 액센트 컬러
+                        </h3>
+                        <div className="flex flex-col space-y-5">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-text-muted">모드</span>
+                                <div className="bg-bg-base border border-border-strong rounded-lg p-1 flex space-x-1">
+                                    <button onClick={() => setTheme('light')} className={`px-3 py-1 rounded text-xs font-bold ${theme === 'light' ? 'bg-bg-surface shadow-sm' : 'text-text-muted hover:text-text-base'}`}>라이트</button>
+                                    <button onClick={() => setTheme('dark')} className={`px-3 py-1 rounded text-xs font-bold ${theme === 'dark' ? 'bg-bg-surface shadow-sm' : 'text-text-muted hover:text-text-base'}`}>다크</button>
+                                    <button onClick={() => setTheme('system')} className={`px-3 py-1 rounded text-xs font-bold ${theme === 'system' ? 'bg-bg-surface shadow-sm' : 'text-text-muted hover:text-text-base'}`}>시스템</button>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-text-muted">액센트 컬러</span>
+                                <div className="flex items-center space-x-3">
+                                    {[
+                                        { id: 'default', color: 'bg-blue-500' },
+                                        { id: 'peach', color: 'bg-rose-500' },
+                                        { id: 'mint', color: 'bg-emerald-500' },
+                                        { id: 'lavender', color: 'bg-violet-500' },
+                                        { id: 'monochrome', color: 'bg-gray-900 border border-border-strong' }
+                                    ].map(t => (
+                                        <button
+                                            key={t.id}
+                                            onClick={() => updateSettings({ accentTheme: t.id as any })}
+                                            className={`w-6 h-6 rounded-full transition-all ring-offset-2 ring-offset-bg-surface ${t.color} ${(settings.accentTheme || 'default') === t.id ? 'ring-2 ring-text-muted scale-110' : 'hover:scale-110'
+                                                }`}
+                                            aria-label={t.id}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="bg-gradient-to-r from-accent/10 to-primary/10 border border-border-subtle rounded-2xl p-5 shadow-sm mt-4">
                     <div className="flex items-start justify-between">
                         <div>
                             <div className="flex items-center space-x-2 mb-1">

@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import Onboarding from './Onboarding';
 import AuthPanel from './AuthPanel';
 import { supabaseClient } from '@/lib/supabaseClient';
+import { useDoneDayStore } from '@/store/useDoneDayStore';
 
 export default function GlobalOnboarding() {
+    const settings = useDoneDayStore(state => state.settings);
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -17,6 +19,16 @@ export default function GlobalOnboarding() {
         });
         return () => subscription.subscription.unsubscribe();
     }, []);
+
+    useEffect(() => {
+        if (typeof document !== 'undefined') {
+            if (settings.accentTheme && settings.accentTheme !== 'default') {
+                document.documentElement.setAttribute('data-theme', settings.accentTheme);
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+    }, [settings.accentTheme]);
 
     if (!mounted) return null;
 

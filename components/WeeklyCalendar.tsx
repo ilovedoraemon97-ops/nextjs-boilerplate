@@ -36,10 +36,11 @@ interface DraggableBlockProps {
     activeStartHour: number;
     activeEndHour: number;
     totalActiveMins: number;
+    layout?: { left: number; width: number; zIndex: number };
     onClick?: (block: TimeBlock) => void;
 }
 
-function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalActiveMins, onClick }: DraggableBlockProps) {
+function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalActiveMins, layout, onClick }: DraggableBlockProps) {
     const isGrowth = block.type === 'GROWTH';
 
     const topPercent = getTopPercent(block.startTime, activeStartHour, activeEndHour, totalActiveMins);
@@ -48,42 +49,38 @@ function AbsoluteDraggableBlock({ block, activeStartHour, activeEndHour, totalAc
     const isShort = block.durationMinutes <= 30;
     const heightPercent = (block.durationMinutes / totalActiveMins) * 100;
 
+    const leftStr = layout ? `calc(${layout.left}% + 1px)` : '1px';
+    const widthStr = layout ? `calc(${layout.width}% - 2px)` : 'calc(100% - 2px)';
+    const baseZIndex = layout ? layout.zIndex : 10;
+
     const style = {
         top: `${topPercent}%`,
         height: `${heightPercent}%`,
-        minHeight: isShort ? '12px' : undefined,
-        zIndex: 10,
+        minHeight: isShort ? '20px' : undefined,
+        left: leftStr,
+        width: widthStr,
+        zIndex: baseZIndex,
     };
 
-    const colorClass = isGrowth ? (block.color || 'bg-primary') : '';
-    const lineColorClass = isGrowth ? (block.color || 'bg-primary') : 'bg-normal';
+    const colorClass = isGrowth ? (block.color || 'bg-growth') : '';
 
     return (
         <div
             style={style}
             onClick={() => onClick?.(block)}
             className={clsx(
-                "absolute left-[1px] right-[1px] transition-all overflow-hidden hover:z-50",
+                "absolute transition-all overflow-hidden hover:z-[60] shadow-[0_1px_3px_rgba(0,0,0,0.12)] cursor-pointer backdrop-blur-sm",
                 isShort
-                    ? "p-0 rounded-none bg-transparent"
-                    : "p-[2px] sm:p-1 rounded-[3px] sm:rounded-md text-[7px] sm:text-[9.5px] leading-tight flex flex-col border-l-[1.5px] sm:border-l-2 shadow-sm outline outline-1 outline-bg-base",
-                "cursor-default",
-                isShort
-                    ? ""
-                    : isGrowth
-                        ? `${colorClass} border-white border-[0.5px] text-white border-l-white/50 backdrop-blur-sm`
-                        : "bg-normal-bg text-normal-hover border-normal border-white border-[0.5px] border-l-normal"
+                    ? "rounded-[4px] sm:rounded-md text-[8px] sm:text-[10px] flex items-center font-bold px-1.5 py-0 border-l-[3px] sm:border-l-[4px]"
+                    : "rounded-[6px] sm:rounded-lg text-[9px] sm:text-[11px] leading-tight flex flex-col p-1.5 sm:p-2 border-l-[3px] sm:border-l-[4px]",
+                isGrowth
+                    ? `${colorClass} border-white/20 text-white outline outline-[0.5px] outline-white/10`
+                    : "bg-bg-surface/90 border-border-strong text-text-base border-l-normal hover:bg-bg-surface-hover outline outline-[0.5px] outline-border-subtle"
             )}
         >
-            {isShort && (
-                <div className={clsx("absolute left-0 right-0 top-0 h-[2px]", lineColorClass)} />
-            )}
-            {!isShort && block.type !== 'GROWTH' && (
-                <div className="flex items-start sm:items-center justify-between">
-                    <span className="font-semibold truncate tracking-tight">{block.title}</span>
-                </div>
-            )}
-            
+            <div className={clsx("flex items-start justify-between w-full h-full", isShort && "items-center")}>
+                <span className="font-bold truncate tracking-tight opacity-95">{block.title}</span>
+            </div>
         </div>
     );
 }
@@ -110,9 +107,45 @@ interface DayColumnProps {
 
 function DayColumn({ date, blocks, activeStartHour, activeEndHour, totalActiveHours, onBlockClick }: DayColumnProps) {
     const dateStr = format(date, 'yyyy-MM-dd');
+    const totalActiveMins = totalActiveHours * 60;
 
     // Tetris Shift density logic (e.g. 5+ blocks in a day = highly dense)
     const isDense = blocks.length >= 5;
+
+    // --- Cascade Overlap Algorithm ---
+    const validBlocks = blocks.map(b => {
+        const topPercent = getTopPercent(b.startTime, activeStartHour, activeEndHour, totalActiveMins);
+        return { block: b, topPercent };
+    }).filter(b => b.topPercent !== null);
+
+    // Sort by start time, then duration descending
+    validBlocks.sort((a, b) => {
+        if (Math.abs(a.topPercent! - b.topPercent!) > 0.1) return a.topPercent! - b.topPercent!;
+        return b.block.durationMinutes - a.block.durationMinutes;
+    });
+
+    const layoutMap = new Map<string, { left: number, width: number, zIndex: number }>();
+    validBlocks.forEach((vb, i) => {
+        const startP = vb.topPercent!;
+        const endP = startP + (vb.block.durationMinutes / totalActiveMins) * 100;
+
+        const overlaps = validBlocks.slice(0, i).filter(prev => {
+            const pStartP = prev.topPercent!;
+            const pEndP = pStartP + (prev.block.durationMinutes / totalActiveMins) * 100;
+            return startP < pEndP && endP > pStartP;
+        });
+
+        // Max depth mapping to indent properly
+        const depth = overlaps.length;
+        // Limit visual indent to 4 steps max to avoid squishing
+        const indentStep = Math.min(depth, 4);
+
+        layoutMap.set(vb.block.id, {
+            left: indentStep * 15, // 15% indent per overlap level
+            width: 100 - (indentStep * 15),
+            zIndex: 10 + depth,
+        });
+    });
 
     return (
         <div className="flex-1 flex flex-col min-w-0 border-r border-border-subtle last:border-r-0 relative">
@@ -160,6 +193,7 @@ function DayColumn({ date, blocks, activeStartHour, activeEndHour, totalActiveHo
                         activeStartHour={activeStartHour}
                         activeEndHour={activeEndHour}
                         totalActiveMins={totalActiveHours * 60}
+                        layout={layoutMap.get(b.id)}
                         onClick={onBlockClick}
                     />
                 ))}

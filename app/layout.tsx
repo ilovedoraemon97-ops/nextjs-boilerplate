@@ -4,6 +4,7 @@ import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import AuthGate from "@/components/AuthGate";
 import GlobalOnboarding from "@/components/GlobalOnboarding";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,18 +35,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-bg-base text-text-base flex justify-center tracking-tight`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans min-h-screen bg-bg-base text-text-base flex justify-center tracking-tight transition-colors duration-300`}
       >
-        <div id="app-shell" className="w-full sm:max-w-md bg-bg-surface min-h-screen relative shadow-2xl overflow-hidden flex flex-col pb-20">
-          <main className="flex-1 w-full h-full overflow-y-auto">
-            {children}
-          </main>
-          <BottomNav />
-        </div>
-        <GlobalOnboarding />
-        <AuthGate />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <div id="app-shell" className="w-full sm:max-w-md bg-bg-surface min-h-screen relative shadow-2xl overflow-hidden flex flex-col pb-20 transition-colors duration-300">
+            <main className="flex-1 w-full h-full overflow-y-auto">
+              {children}
+            </main>
+            <BottomNav />
+          </div>
+          <GlobalOnboarding />
+          <AuthGate />
+        </ThemeProvider>
       </body>
     </html>
   );
